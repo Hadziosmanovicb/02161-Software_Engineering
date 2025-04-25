@@ -7,7 +7,20 @@ public class ProjectManager {
     private Map<String, Employee> employees = new HashMap<>();
     private Map<String, String> projects = new HashMap<>(); // projektNavn → lederInitialer
     private String loggedInUser;
+    private Map<String, List<Activity>> activities = new HashMap<>();
 
+    public void addActivityToProject(String projectName, String activityName) {
+        if (!projects.containsKey(projectName)) {
+            throw new RuntimeException("Projektet findes ikke");
+        }
+        activities.computeIfAbsent(projectName, k -> new ArrayList<>())
+                  .add(new Activity(activityName));
+    }
+    
+    public List<Activity> getActivities(String projectName) {
+        return activities.getOrDefault(projectName, new ArrayList<>());
+    }
+    
     // Til login
     public void addEmployee(Employee emp) {
         employees.put(emp.getInitials(), emp);
