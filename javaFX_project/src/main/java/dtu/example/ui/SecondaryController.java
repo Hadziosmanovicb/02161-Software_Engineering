@@ -1,11 +1,18 @@
 package dtu.example.ui;
 
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
 import dtu.example.ui.domain.Activity;
 import dtu.example.ui.domain.Employee;
 import dtu.example.ui.domain.ProjectManager;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
@@ -197,6 +204,136 @@ private void handleAssignEmployee() {
     }
 }
 
-    @FXML private void handleLogTime() {}
-    @FXML private void handleShowMyActivities() {}
+    @FXML
+private void handleLogTime() {
+    if (projectUIVisible || activityUIVisible) return;
+    activityUIVisible = true;
+
+    String loggedIn = projectManager.getLoggedInUser();
+
+    // Projekt dropdown
+    ComboBox<String> projectDropdown = new ComboBox<>();
+    projectDropdown.setPromptText("Vælg projekt");
+
+    Set<String> relevantProjects = new HashSet<>();
+    for (String project : projectManager.getAllProjects()) {
+        for (Activity act : projectManager.getActivities(project)) {
+            if (act.getAssignedEmployees().stream()
+                   .anyMatch(emp -> emp.getInitials().equals(loggedIn))) {
+                relevantProjects.add(project);
+                break;
+            }
+        }
+    }
+
+    projectDropdown.getItems().addAll(relevantProjects);
+
+    // Aktivitet dropdown
+    ComboBox<String> activityDropdown = new ComboBox<>();
+    activityDropdown.setPromptText("Vælg aktivitet");
+    activityDropdown.setDisable(true);
+
+    projectDropdown.setOnAction(e -> {
+        activityDropdown.getItems().clear();
+        String selectedProject = projectDropdown.getValue();
+        if (selectedProject != null) {
+            for (Activity act : projectManager.getActivities(selectedProject)) {
+                if (act.getAssignedEmployees().stream()
+                       .anyMatch(emp -> emp.getInitials().equals(loggedIn))) {
+                    activityDropdown.getItems().add(act.getName());
+                }
+            }
+            activityDropdown.setDisable(false);
+        }
+    });
+
+    // Dato
+    DatePicker datePicker = new DatePicker();
+    datePicker.setPromptText("Vælg dato");
+
+    // Timer
+    TextField hoursField = new TextField();
+    hoursField.setPromptText("Antal timer");
+
+    // Bekræft
+    Button confirmButton = new Button("Bekræft");
+    confirmButton.setOnAction(e -> {
+        String project = projectDropdown.getValue();
+        String activityName = activityDropdown.getValue();
+        LocalDate date = datePicker.getValue();
+        int hours;
+
+        try {
+            hours = Integer.parseInt(hoursField.getText());
+        } catch (NumberFormatException ex) {
+            System.out.println("Ugyldigt antal timer");
+            return;
+        }
+
+        if (project != null && activityName != null && hours > 0 && date != null) {
+            for (Activity act : projectManager.getActivities(project)) {
+                if (act.getName().equals(activityName)) {
+                    act.registerTime(new Employee(loggedIn), date, hours);
+                    System.out.println("Tid registreret: " + hours + " timer på " + activityName + " (" + date + ")");
+                    break;
+                }
+            }
+            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, datePicker, hoursField, confirmButton);
+            activityUIVisible = false;
+        }
+    });
+
+    int insertIndex = findButtonIndex("Registrer Tid");
+    if (insertIndex != -1) {
+        mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
+        mainContainer.getChildren().add(insertIndex + 2, activityDropdown);
+        mainContainer.getChildren().add(insertIndex + 3, datePicker);
+        mainContainer.getChildren().add(insertIndex + 4, hoursField);
+        mainContainer.getChildren().add(insertIndex + 5, confirmButton);
+    }
+}
+
+   @FXML
+private void handleShowMyActivities() {
+    if (projectUIVisible || activityUIVisible) return;
+    activityUIVisible = true;
+
+    String loggedIn = projectManager.getLoggedInUser();
+
+    VBox activityList = new VBox(10);
+    activityList.setPadding(new Insets(10));
+    activityList.setStyle("-fx-background-color: #e9e9e9; -fx-border-color: #ccc; -fx-border-radius: 5px;");
+    
+    for (String project : projectManager.getAllProjects()) {
+        for (Activity activity : projectManager.getActivities(project)) {
+            boolean isAssigned = activity.getAssignedEmployees().stream()
+                .anyMatch(emp -> emp.getInitials().equals(loggedIn));
+
+            if (isAssigned) {
+                int totalHours = activity.getRegisteredTime(loggedIn);
+
+                Label infoLabel = new Label("Projekt: " + project +
+                        " | Aktivitet: " + activity.getName() +
+                        " | Timer brugt: " + totalHours);
+
+                infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #333;");
+                activityList.getChildren().add(infoLabel);
+            }
+        }
+    }
+
+    Button closeButton = new Button("Luk");
+    closeButton.setOnAction(e -> {
+        mainContainer.getChildren().remove(activityList);
+        mainContainer.getChildren().remove(closeButton);
+        activityUIVisible = false;
+    });
+
+    int insertIndex = findButtonIndex("Se mine Aktiviteter");
+    if (insertIndex != -1) {
+        mainContainer.getChildren().add(insertIndex + 1, activityList);
+        mainContainer.getChildren().add(insertIndex + 2, closeButton);
+    }
+}
+
 }

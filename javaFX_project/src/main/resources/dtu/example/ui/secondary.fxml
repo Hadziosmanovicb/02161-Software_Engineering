@@ -3,36 +3,46 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Priority?>
 
-<VBox fx:id="mainContainer"
-      xmlns="http://javafx.com/javafx/8.0.171"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="dtu.example.ui.SecondaryController"
-      alignment="CENTER" spacing="15.0"
-      style="-fx-background-color: #f4f4f4;">
+<ScrollPane fx:id="scrollPane"
+            xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="dtu.example.ui.SecondaryController"
+            fitToWidth="true"
+            style="-fx-background-color:transparent;">
 
-    <padding>
-        <Insets top="40.0" right="30.0" bottom="40.0" left="30.0"/>
-    </padding>
+    <content>
+        <VBox fx:id="mainContainer"
+              alignment="CENTER"
+              spacing="15.0"
+              style="-fx-background-color: #f4f4f4;"
+              VBox.vgrow="ALWAYS">
 
-    <children>
-        <Label text="Vælg en handling"
-               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2a2a2a;" />
+            <padding>
+                <Insets top="40.0" right="30.0" bottom="40.0" left="30.0"/>
+            </padding>
 
-        <Button text="Opret Projekt" onAction="#handleCreateProject"
-                style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-        <Button text="Tilføj Aktivitet" onAction="#handleAddActivity"
-                style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-        <Button text="Tilføj Medarbejder" onAction="#handleAddEmployee"
-                style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-        <Button text="Tildel Medarbejder til Aktivitet" onAction="#handleAssignEmployee"
-                style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-        <Button text="Registrer Tid" onAction="#handleLogTime"
-                style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-        <Button text="Se mine Aktiviteter" onAction="#handleShowMyActivities"
-                style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+            <children>
+                <Label text="Vælg en handling"
+                       style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2a2a2a;" />
 
-        <Button text="Log ud" onAction="#handleLogout"
-                style="-fx-background-color:rgb(238, 63, 57); -fx-text-fill: white; -fx-font-size: 14px; -fx-pref-width: 250px;" />
-    </children>
-</VBox>
+                <Button text="Opret Projekt" onAction="#handleCreateProject"
+                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                <Button text="Tilføj Aktivitet" onAction="#handleAddActivity"
+                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                <Button text="Tilføj Medarbejder" onAction="#handleAddEmployee"
+                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                <Button text="Tildel Medarbejder til Aktivitet" onAction="#handleAssignEmployee"
+                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                <Button text="Registrer Tid" onAction="#handleLogTime"
+                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                <Button text="Se mine Aktiviteter" onAction="#handleShowMyActivities"
+                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+
+                <Button text="Log ud" onAction="#handleLogout"
+                        style="-fx-background-color:rgb(238, 63, 57); -fx-text-fill: white; -fx-font-size: 14px; -fx-pref-width: 250px;" />
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>
