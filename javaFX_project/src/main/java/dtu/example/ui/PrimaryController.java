@@ -1,14 +1,18 @@
 package dtu.example.ui;
 
 import java.io.IOException;
+import dtu.example.ui.domain.Employee;
+import dtu.example.ui.domain.ProjectManager;
 import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 
 public class PrimaryController {
 
     @FXML private TextField initialsField;
     @FXML private Label loginStatus;
+
+    private static ProjectManager projectManager = new ProjectManager();
 
     @FXML
     private void handleLogin() throws IOException {
@@ -19,10 +23,19 @@ public class PrimaryController {
             return;
         }
 
-        // Her kan vi senere registrere brugeren hvis ny
-        System.out.println("Logger ind som: " + initials);
+        // Opret medarbejder hvis ny
+        if (!projectManager.employeeExists(initials)) {
+            projectManager.addEmployee(new Employee(initials));
+        }
 
-        // Skift til secondary view
+        // Gem den loggede ind bruger
+        projectManager.setLoggedInUser(initials);
+
+        // Gå videre til secondary view
         App.setRoot("secondary");
+    }
+
+    public static ProjectManager getProjectManager() {
+        return projectManager;
     }
 }
