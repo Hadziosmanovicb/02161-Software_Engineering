@@ -13,17 +13,19 @@ public class ProjectManager {
         if (!projects.containsKey(projectName)) {
             throw new RuntimeException("Projektet findes ikke");
         }
+        if (!isLoggedInUserProjectLeader(projectName)) {
+            throw new RuntimeException("Kun projektlederen må tilføje aktiviteter");
+        }
         activities.computeIfAbsent(projectName, k -> new ArrayList<>())
                   .add(new Activity(activityName));
     }
-    
+
     public List<Activity> getActivities(String projectName) {
         return activities.getOrDefault(projectName, new ArrayList<>());
     }
-    
-    // Til login
+
     public void addEmployee(Employee emp) {
-        employees.put(emp.getInitials(), emp);
+        employees.putIfAbsent(emp.getInitials(), emp);
     }
 
     public boolean employeeExists(String initials) {
@@ -38,12 +40,16 @@ public class ProjectManager {
         return loggedInUser;
     }
 
-    // Projekt
     public void createProject(String name, String leaderInitials) {
         if (projects.containsKey(name)) {
             throw new RuntimeException("Projekt eksisterer allerede");
         }
         projects.put(name, leaderInitials);
+        // markér projektlederen som leder
+        Employee leader = employees.get(leaderInitials);
+        if (leader != null) {
+            leader.setProjectLeader(true);
+        }
     }
 
     public boolean projectExists(String name) {
@@ -54,12 +60,15 @@ public class ProjectManager {
         return projects.get(name);
     }
 
-    
+    public boolean isLoggedInUserProjectLeader(String projectName) {
+        return getProjectLeader(projectName) != null &&
+               getProjectLeader(projectName).equals(loggedInUser);
+    }
+
     public List<String> getAllProjectNames() {
         return new ArrayList<>(projects.keySet());
     }
 
-   
     public Set<String> getAllProjects() {
         return projects.keySet();
     }

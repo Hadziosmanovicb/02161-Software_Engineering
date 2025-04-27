@@ -1,11 +1,10 @@
 package dtu.example.ui.domain;
 
-
-
 import java.util.Objects;
 
 public class Employee {
     private String initials;
+    private boolean isProjectLeader = false;
 
     public Employee(String initials) {
         this.initials = initials;
@@ -13,6 +12,14 @@ public class Employee {
 
     public String getInitials() {
         return initials;
+    }
+
+    public boolean isProjectLeader() {
+        return isProjectLeader;
+    }
+
+    public void setProjectLeader(boolean isProjectLeader) {
+        this.isProjectLeader = isProjectLeader;
     }
 
     @Override

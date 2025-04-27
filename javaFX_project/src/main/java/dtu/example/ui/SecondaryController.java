@@ -25,35 +25,46 @@ public class SecondaryController {
     private final ProjectManager projectManager = PrimaryController.getProjectManager();
 
     @FXML
-private void handleCreateProject() {
-    if (projectUIVisible) return;
-
-    TextField projectNameField = new TextField();
-    projectNameField.setPromptText("Projekt navn");
-
-    TextField projectLeaderField = new TextField();
-    projectLeaderField.setPromptText("Projektleder initialer");
-
-    Button confirmButton = new Button("Bekræft");
-    confirmButton.setOnAction(e -> {
-        String name = projectNameField.getText();
-        String leader = projectLeaderField.getText();
-        if (!name.isEmpty() && !leader.isEmpty()) {
-            projectManager.createProject(name, leader);
-            System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
-            mainContainer.getChildren().removeAll(projectNameField, projectLeaderField, confirmButton);
-            projectUIVisible = false;
-        }
-    });
-
-    int insertIndex = findButtonIndex("Opret Projekt");
-    if (insertIndex != -1) {
-        mainContainer.getChildren().add(insertIndex + 1, projectNameField);
-        mainContainer.getChildren().add(insertIndex + 2, projectLeaderField);
-        mainContainer.getChildren().add(insertIndex + 3, confirmButton);
+    private void handleCreateProject() {
+        if (projectUIVisible) return;
+    
         projectUIVisible = true;
+    
+        TextField projectNameField = new TextField();
+        projectNameField.setPromptText("Projekt navn");
+    
+        TextField projectLeaderField = new TextField();
+        projectLeaderField.setPromptText("Projektleder initialer");
+    
+        Button confirmButton = new Button("Bekræft");
+        Button cancelButton = new Button("Annuller");
+    
+   
+        confirmButton.setOnAction(e -> {
+            String name = projectNameField.getText();
+            String leader = projectLeaderField.getText();
+            if (!name.isEmpty() && !leader.isEmpty()) {
+                projectManager.createProject(name, leader);
+                System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
+                mainContainer.getChildren().removeAll(projectNameField, projectLeaderField, confirmButton, cancelButton);
+                projectUIVisible = false;
+            }
+        });
+    
+    
+        cancelButton.setOnAction(e -> {
+            mainContainer.getChildren().removeAll(projectNameField, projectLeaderField, confirmButton, cancelButton);
+            projectUIVisible = false;
+        });
+    
+        int insertIndex = findButtonIndex("Opret Projekt");
+        if (insertIndex != -1) {
+            mainContainer.getChildren().add(insertIndex + 1, projectNameField);
+            mainContainer.getChildren().add(insertIndex + 2, projectLeaderField);
+            mainContainer.getChildren().add(insertIndex + 3, confirmButton);
+            mainContainer.getChildren().add(insertIndex + 4, cancelButton); 
+        }
     }
-}
     private int findButtonIndex(String buttonText) {
         for (int i = 0; i < mainContainer.getChildren().size(); i++) {
             if (mainContainer.getChildren().get(i) instanceof Button btn &&
@@ -71,116 +82,160 @@ private void handleCreateProject() {
 
     // Deaktiver alle andre knapper
     private boolean activityUIVisible = false;
-
     @FXML
     private void handleAddActivity() {
         if (activityUIVisible) return;
     
-        // Projektvalg
+        activityUIVisible = true;
+    
         ComboBox<String> projectDropdown = new ComboBox<>();
         projectDropdown.setPromptText("Vælg projekt");
         projectDropdown.getItems().addAll(projectManager.getAllProjects());
     
-        // Aktivitet-navn
         TextField activityNameField = new TextField();
         activityNameField.setPromptText("Aktivitetsnavn");
     
-        // Bekræft-knap
         Button confirmButton = new Button("Bekræft");
+        Button cancelButton = new Button("Annuller");
+    
+  
         confirmButton.setOnAction(e -> {
             String selectedProject = projectDropdown.getValue();
             String activityName = activityNameField.getText();
             if (selectedProject != null && !activityName.isEmpty()) {
-                // HER bliver det gemt
+    
+                if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
+                    System.out.println("Kun projektlederen må tilføje aktiviteter til dette projekt.");
+                    return;
+                }
+    
                 projectManager.addActivityToProject(selectedProject, activityName);
                 System.out.println("Aktivitet '" + activityName + "' oprettet til projekt: " + selectedProject);
-                mainContainer.getChildren().removeAll(projectDropdown, activityNameField, confirmButton);
+                mainContainer.getChildren().removeAll(projectDropdown, activityNameField, confirmButton, cancelButton);
                 activityUIVisible = false;
             }
         });
     
-        // Indsæt i GUI
+       
+        cancelButton.setOnAction(e -> {
+            mainContainer.getChildren().removeAll(projectDropdown, activityNameField, confirmButton, cancelButton);
+            activityUIVisible = false;
+        });
+    
         int insertIndex = findButtonIndex("Tilføj Aktivitet");
         if (insertIndex != -1) {
             mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
             mainContainer.getChildren().add(insertIndex + 2, activityNameField);
             mainContainer.getChildren().add(insertIndex + 3, confirmButton);
-            activityUIVisible = true;
+            mainContainer.getChildren().add(insertIndex + 4, cancelButton); 
         }
     }
     
-
     @FXML
-private void handleAddEmployee() {
+    private void handleAddEmployee() {
+        if (projectUIVisible || activityUIVisible) return;
+        projectUIVisible = true;
     
-    if (projectUIVisible || activityUIVisible) return;
-    projectUIVisible = true; 
-
-    // Opret input-felt
-    TextField initialsField = new TextField();
-    initialsField.setPromptText("Initialer på medarbejder");
-
-    Button confirmButton = new Button("Bekræft");
-    confirmButton.setOnAction(e -> {
-        String initials = initialsField.getText().trim();
-        if (!initials.isEmpty()) {
-            projectManager.addEmployee(new Employee(initials));
-            System.out.println("Medarbejder tilføjet: " + initials);
-            mainContainer.getChildren().removeAll(initialsField, confirmButton);
+        // Vælg projekt
+        ComboBox<String> projectDropdown = new ComboBox<>();
+        projectDropdown.setPromptText("Vælg projekt");
+        projectDropdown.getItems().addAll(projectManager.getAllProjects());
+    
+        // Indtast initialer
+        TextField initialsField = new TextField();
+        initialsField.setPromptText("Initialer på medarbejder");
+        initialsField.setDisable(true); 
+    
+        Button confirmButton = new Button("Bekræft");
+        Button cancelButton = new Button("Annuller");
+    
+        // Når projekt er valgt → aktiver initialer input
+        projectDropdown.setOnAction(e -> {
+            if (projectDropdown.getValue() != null) {
+                initialsField.setDisable(false);
+            }
+        });
+    
+        // Bekræft-knap
+        confirmButton.setOnAction(e -> {
+            String project = projectDropdown.getValue();
+            String initials = initialsField.getText().trim();
+    
+            if (project != null && !initials.isEmpty()) {
+                projectManager.addEmployee(new Employee(initials));
+                System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
+                mainContainer.getChildren().removeAll(projectDropdown, initialsField, confirmButton, cancelButton);
+                projectUIVisible = false;
+            }
+        });
+    
+        // Annuller-knap
+        cancelButton.setOnAction(e -> {
+            mainContainer.getChildren().removeAll(projectDropdown, initialsField, confirmButton, cancelButton);
             projectUIVisible = false;
+        });
+    
+        int insertIndex = findButtonIndex("Tilføj Medarbejder");
+        if (insertIndex != -1) {
+            mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
+            mainContainer.getChildren().add(insertIndex + 2, initialsField);
+            mainContainer.getChildren().add(insertIndex + 3, confirmButton);
+            mainContainer.getChildren().add(insertIndex + 4, cancelButton);
         }
-    });
-
-    int insertIndex = findButtonIndex("Tilføj Medarbejder");
-    if (insertIndex != -1) {
-        mainContainer.getChildren().add(insertIndex + 1, initialsField);
-        mainContainer.getChildren().add(insertIndex + 2, confirmButton);
     }
-}
-
     @FXML
 private void handleAssignEmployee() {
     if (projectUIVisible || activityUIVisible) return;
     projectUIVisible = true;
 
-    // Projekt dropdown
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
     projectDropdown.getItems().addAll(projectManager.getAllProjects());
 
-
     ComboBox<String> activityDropdown = new ComboBox<>();
     activityDropdown.setPromptText("Vælg aktivitet");
-    activityDropdown.setDisable(true); 
+    activityDropdown.setDisable(true);
 
-   
-    projectDropdown.setOnAction(e -> {
-        String selectedProject = projectDropdown.getValue();
-        if (selectedProject != null) {
-            activityDropdown.getItems().clear();
-            projectManager.getActivities(selectedProject).forEach(activity ->
-                activityDropdown.getItems().add(activity.getName())
-            );
-            activityDropdown.setDisable(false);
-        }
-    });
-
-    // Medarbejder-dropdown
     ComboBox<String> employeeDropdown = new ComboBox<>();
     employeeDropdown.setPromptText("Vælg medarbejder");
     projectManager.getAllEmployees().forEach(emp ->
         employeeDropdown.getItems().add(emp.getInitials())
     );
+    employeeDropdown.setDisable(true);
 
-    // Bekræft-knap
     Button confirmButton = new Button("Bekræft");
+    Button cancelButton = new Button("Annuller");
+
+    projectDropdown.setOnAction(e -> {
+        String selectedProject = projectDropdown.getValue();
+        if (selectedProject != null) {
+            if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
+                System.out.println("Kun projektlederen må tildele medarbejdere til dette projekt.");
+                activityDropdown.setDisable(true);
+                employeeDropdown.setDisable(true);
+                return;
+            }
+
+            activityDropdown.getItems().clear();
+            projectManager.getActivities(selectedProject).forEach(activity ->
+                activityDropdown.getItems().add(activity.getName())
+            );
+            activityDropdown.setDisable(false);
+            employeeDropdown.setDisable(false);
+        }
+    });
+
     confirmButton.setOnAction(e -> {
         String project = projectDropdown.getValue();
         String activityName = activityDropdown.getValue();
         String employeeInitials = employeeDropdown.getValue();
 
         if (project != null && activityName != null && employeeInitials != null) {
-            // Find aktiviteten
+            if (!projectManager.isLoggedInUserProjectLeader(project)) {
+                System.out.println("Kun projektlederen må tildele medarbejdere.");
+                return;
+            }
+
             for (Activity activity : projectManager.getActivities(project)) {
                 if (activity.getName().equals(activityName)) {
                     activity.assignEmployee(new Employee(employeeInitials));
@@ -189,10 +244,14 @@ private void handleAssignEmployee() {
                 }
             }
 
-            // Ryd GUI
-            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, employeeDropdown, confirmButton);
+            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, employeeDropdown, confirmButton, cancelButton);
             projectUIVisible = false;
         }
+    });
+
+    cancelButton.setOnAction(e -> {
+        mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, employeeDropdown, confirmButton, cancelButton);
+        projectUIVisible = false;
     });
 
     int insertIndex = findButtonIndex("Tildel Medarbejder til Aktivitet");
@@ -201,17 +260,17 @@ private void handleAssignEmployee() {
         mainContainer.getChildren().add(insertIndex + 2, activityDropdown);
         mainContainer.getChildren().add(insertIndex + 3, employeeDropdown);
         mainContainer.getChildren().add(insertIndex + 4, confirmButton);
+        mainContainer.getChildren().add(insertIndex + 5, cancelButton);
     }
 }
 
-    @FXML
+@FXML
 private void handleLogTime() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
 
     String loggedIn = projectManager.getLoggedInUser();
 
-    // Projekt dropdown
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
 
@@ -225,10 +284,8 @@ private void handleLogTime() {
             }
         }
     }
-
     projectDropdown.getItems().addAll(relevantProjects);
 
-    // Aktivitet dropdown
     ComboBox<String> activityDropdown = new ComboBox<>();
     activityDropdown.setPromptText("Vælg aktivitet");
     activityDropdown.setDisable(true);
@@ -247,16 +304,15 @@ private void handleLogTime() {
         }
     });
 
-    // Dato
     DatePicker datePicker = new DatePicker();
     datePicker.setPromptText("Vælg dato");
 
-    // Timer
     TextField hoursField = new TextField();
     hoursField.setPromptText("Antal timer");
 
-    // Bekræft
     Button confirmButton = new Button("Bekræft");
+    Button cancelButton = new Button("Annuller");
+
     confirmButton.setOnAction(e -> {
         String project = projectDropdown.getValue();
         String activityName = activityDropdown.getValue();
@@ -278,9 +334,14 @@ private void handleLogTime() {
                     break;
                 }
             }
-            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, datePicker, hoursField, confirmButton);
+            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, datePicker, hoursField, confirmButton, cancelButton);
             activityUIVisible = false;
         }
+    });
+
+    cancelButton.setOnAction(e -> {
+        mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, datePicker, hoursField, confirmButton, cancelButton);
+        activityUIVisible = false;
     });
 
     int insertIndex = findButtonIndex("Registrer Tid");
@@ -290,10 +351,11 @@ private void handleLogTime() {
         mainContainer.getChildren().add(insertIndex + 3, datePicker);
         mainContainer.getChildren().add(insertIndex + 4, hoursField);
         mainContainer.getChildren().add(insertIndex + 5, confirmButton);
+        mainContainer.getChildren().add(insertIndex + 6, cancelButton);
     }
 }
 
-   @FXML
+@FXML
 private void handleShowMyActivities() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
@@ -303,7 +365,7 @@ private void handleShowMyActivities() {
     VBox activityList = new VBox(10);
     activityList.setPadding(new Insets(10));
     activityList.setStyle("-fx-background-color: #e9e9e9; -fx-border-color: #ccc; -fx-border-radius: 5px;");
-    
+
     for (String project : projectManager.getAllProjects()) {
         for (Activity activity : projectManager.getActivities(project)) {
             boolean isAssigned = activity.getAssignedEmployees().stream()
@@ -322,10 +384,9 @@ private void handleShowMyActivities() {
         }
     }
 
-    Button closeButton = new Button("Luk");
+    Button closeButton = new Button("Annuller");
     closeButton.setOnAction(e -> {
-        mainContainer.getChildren().remove(activityList);
-        mainContainer.getChildren().remove(closeButton);
+        mainContainer.getChildren().removeAll(activityList, closeButton);
         activityUIVisible = false;
     });
 
@@ -335,5 +396,6 @@ private void handleShowMyActivities() {
         mainContainer.getChildren().add(insertIndex + 2, closeButton);
     }
 }
+
 
 }
