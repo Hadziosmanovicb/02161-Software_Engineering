@@ -16,11 +16,14 @@ public class App extends Application {
     private static Scene scene;
 
     @Override
-    public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
-        stage.setScene(scene);
-        stage.show();
-    }
+public void start(Stage stage) throws IOException {
+    scene = new Scene(loadFXML("primary"), 1280, 800); 
+    stage.setScene(scene);
+    stage.setMaximized(true); // Fullscreen
+    stage.setTitle("Software"); 
+    stage.show();
+}
+
 
     static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));

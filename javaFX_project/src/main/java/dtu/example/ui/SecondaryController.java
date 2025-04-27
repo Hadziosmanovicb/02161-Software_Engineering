@@ -9,11 +9,13 @@ import dtu.example.ui.domain.Employee;
 import dtu.example.ui.domain.ProjectManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class SecondaryController {
@@ -23,48 +25,66 @@ public class SecondaryController {
     private boolean projectUIVisible = false;
 
     private final ProjectManager projectManager = PrimaryController.getProjectManager();
-
     @FXML
-    private void handleCreateProject() {
-        if (projectUIVisible) return;
-    
-        projectUIVisible = true;
-    
-        TextField projectNameField = new TextField();
-        projectNameField.setPromptText("Projekt navn");
-    
-        TextField projectLeaderField = new TextField();
-        projectLeaderField.setPromptText("Projektleder initialer");
-    
-        Button confirmButton = new Button("Bekræft");
-        Button cancelButton = new Button("Annuller");
-    
-   
-        confirmButton.setOnAction(e -> {
-            String name = projectNameField.getText();
-            String leader = projectLeaderField.getText();
-            if (!name.isEmpty() && !leader.isEmpty()) {
-                projectManager.createProject(name, leader);
-                System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
-                mainContainer.getChildren().removeAll(projectNameField, projectLeaderField, confirmButton, cancelButton);
-                projectUIVisible = false;
-            }
-        });
-    
-    
-        cancelButton.setOnAction(e -> {
-            mainContainer.getChildren().removeAll(projectNameField, projectLeaderField, confirmButton, cancelButton);
-            projectUIVisible = false;
-        });
-    
-        int insertIndex = findButtonIndex("Opret Projekt");
-        if (insertIndex != -1) {
-            mainContainer.getChildren().add(insertIndex + 1, projectNameField);
-            mainContainer.getChildren().add(insertIndex + 2, projectLeaderField);
-            mainContainer.getChildren().add(insertIndex + 3, confirmButton);
-            mainContainer.getChildren().add(insertIndex + 4, cancelButton); 
-        }
+    private Label loggedInLabel;
+    @FXML
+    private void initialize() {
+        loggedInLabel.setText("Logget ind som: " + projectManager.getLoggedInUser());
     }
+        
+  @FXML
+private void handleCreateProject() {
+    if (projectUIVisible || activityUIVisible) return;
+
+    projectUIVisible = true;
+    mainContainer.getChildren().clear(); 
+
+    Label title = new Label("Opret nyt projekt");
+    title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+    TextField projectNameField = new TextField();
+    projectNameField.setPromptText("Indtast projektnavn");
+    projectNameField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+
+    TextField projectLeaderField = new TextField();
+    projectLeaderField.setPromptText("Indtast projektleder initialer");
+    projectLeaderField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+
+    Button confirmButton = new Button("Bekræft");
+    confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
+    Button cancelButton = new Button("Annuller");
+    cancelButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
+    HBox buttonBox = new HBox(20, confirmButton, cancelButton);
+    buttonBox.setPadding(new Insets(10));
+    buttonBox.setAlignment(Pos.CENTER);
+
+    confirmButton.setOnAction(e -> {
+        String name = projectNameField.getText().trim();
+        String leader = projectLeaderField.getText().trim();
+        if (!name.isEmpty() && !leader.isEmpty()) {
+            projectManager.createProject(name, leader);
+            System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
+            mainContainer.getChildren().clear();
+            Label success = new Label("Projektet blev oprettet!");
+            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+            mainContainer.getChildren().add(success);
+            projectUIVisible = false;
+        }
+    });
+
+    cancelButton.setOnAction(e -> {
+        mainContainer.getChildren().clear();
+        projectUIVisible = false;
+    });
+
+    mainContainer.setSpacing(20);
+    mainContainer.setPadding(new Insets(40, 20, 20, 20));
+    mainContainer.setAlignment(Pos.TOP_LEFT);
+    mainContainer.getChildren().addAll(title, projectNameField, projectLeaderField, buttonBox);
+}
+
     private int findButtonIndex(String buttonText) {
         for (int i = 0; i < mainContainer.getChildren().size(); i++) {
             if (mainContainer.getChildren().get(i) instanceof Button btn &&
@@ -84,138 +104,172 @@ public class SecondaryController {
     private boolean activityUIVisible = false;
     @FXML
     private void handleAddActivity() {
-        if (activityUIVisible) return;
+        if (activityUIVisible || projectUIVisible) return;
     
         activityUIVisible = true;
+        mainContainer.getChildren().clear(); // Ryd alt!
+    
+        Label title = new Label("Tilføj ny aktivitet");
+        title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
     
         ComboBox<String> projectDropdown = new ComboBox<>();
         projectDropdown.setPromptText("Vælg projekt");
         projectDropdown.getItems().addAll(projectManager.getAllProjects());
+        projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
     
         TextField activityNameField = new TextField();
-        activityNameField.setPromptText("Aktivitetsnavn");
+        activityNameField.setPromptText("Indtast aktivitetsnavn");
+        activityNameField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
     
         Button confirmButton = new Button("Bekræft");
-        Button cancelButton = new Button("Annuller");
+        confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
     
-  
+        Button cancelButton = new Button("Annuller");
+        cancelButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+    
+        HBox buttonBox = new HBox(20, confirmButton, cancelButton);
+        buttonBox.setPadding(new Insets(10));
+        buttonBox.setAlignment(Pos.CENTER);
+    
         confirmButton.setOnAction(e -> {
             String selectedProject = projectDropdown.getValue();
-            String activityName = activityNameField.getText();
+            String activityName = activityNameField.getText().trim();
             if (selectedProject != null && !activityName.isEmpty()) {
-    
                 if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
-                    System.out.println("Kun projektlederen må tilføje aktiviteter til dette projekt.");
+                    showNotProjectLeaderMessage();
                     return;
                 }
-    
                 projectManager.addActivityToProject(selectedProject, activityName);
                 System.out.println("Aktivitet '" + activityName + "' oprettet til projekt: " + selectedProject);
-                mainContainer.getChildren().removeAll(projectDropdown, activityNameField, confirmButton, cancelButton);
+                mainContainer.getChildren().clear();
+                Label success = new Label("Aktivitet blev oprettet!");
+                success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+                mainContainer.getChildren().add(success);
                 activityUIVisible = false;
             }
         });
     
-       
         cancelButton.setOnAction(e -> {
-            mainContainer.getChildren().removeAll(projectDropdown, activityNameField, confirmButton, cancelButton);
+            mainContainer.getChildren().clear();
             activityUIVisible = false;
         });
     
-        int insertIndex = findButtonIndex("Tilføj Aktivitet");
-        if (insertIndex != -1) {
-            mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
-            mainContainer.getChildren().add(insertIndex + 2, activityNameField);
-            mainContainer.getChildren().add(insertIndex + 3, confirmButton);
-            mainContainer.getChildren().add(insertIndex + 4, cancelButton); 
-        }
-    }
-    
-    @FXML
-    private void handleAddEmployee() {
-        if (projectUIVisible || activityUIVisible) return;
-        projectUIVisible = true;
-    
-        // Vælg projekt
-        ComboBox<String> projectDropdown = new ComboBox<>();
-        projectDropdown.setPromptText("Vælg projekt");
-        projectDropdown.getItems().addAll(projectManager.getAllProjects());
-    
-        // Indtast initialer
-        TextField initialsField = new TextField();
-        initialsField.setPromptText("Initialer på medarbejder");
-        initialsField.setDisable(true); 
-    
-        Button confirmButton = new Button("Bekræft");
-        Button cancelButton = new Button("Annuller");
-    
-        // Når projekt er valgt → aktiver initialer input
-        projectDropdown.setOnAction(e -> {
-            if (projectDropdown.getValue() != null) {
-                initialsField.setDisable(false);
-            }
-        });
-    
-        // Bekræft-knap
-        confirmButton.setOnAction(e -> {
-            String project = projectDropdown.getValue();
-            String initials = initialsField.getText().trim();
-    
-            if (project != null && !initials.isEmpty()) {
-                projectManager.addEmployee(new Employee(initials));
-                System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
-                mainContainer.getChildren().removeAll(projectDropdown, initialsField, confirmButton, cancelButton);
-                projectUIVisible = false;
-            }
-        });
-    
-        // Annuller-knap
-        cancelButton.setOnAction(e -> {
-            mainContainer.getChildren().removeAll(projectDropdown, initialsField, confirmButton, cancelButton);
-            projectUIVisible = false;
-        });
-    
-        int insertIndex = findButtonIndex("Tilføj Medarbejder");
-        if (insertIndex != -1) {
-            mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
-            mainContainer.getChildren().add(insertIndex + 2, initialsField);
-            mainContainer.getChildren().add(insertIndex + 3, confirmButton);
-            mainContainer.getChildren().add(insertIndex + 4, cancelButton);
-        }
+        mainContainer.setSpacing(20);
+        mainContainer.setPadding(new Insets(40, 20, 20, 20));
+        mainContainer.setAlignment(Pos.TOP_LEFT);
+        mainContainer.getChildren().addAll(title, projectDropdown, activityNameField, buttonBox);
     }
     @FXML
-private void handleAssignEmployee() {
+private void handleAddEmployee() {
     if (projectUIVisible || activityUIVisible) return;
+
     projectUIVisible = true;
+    mainContainer.getChildren().clear(); 
+
+    Label title = new Label("Tilføj medarbejder");
+    title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
     projectDropdown.getItems().addAll(projectManager.getAllProjects());
+    projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+
+    TextField initialsField = new TextField();
+    initialsField.setPromptText("Indtast medarbejders initialer");
+    initialsField.setDisable(true);
+    initialsField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+
+    Button confirmButton = new Button("Bekræft");
+    confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
+    Button cancelButton = new Button("Annuller");
+    cancelButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
+    HBox buttonBox = new HBox(20, confirmButton, cancelButton);
+    buttonBox.setPadding(new Insets(10));
+    buttonBox.setAlignment(Pos.CENTER);
+
+    projectDropdown.setOnAction(e -> {
+        if (projectDropdown.getValue() != null) {
+            if (!projectManager.isLoggedInUserProjectLeader(projectDropdown.getValue())) {
+                showNotProjectLeaderMessage();
+                return;
+            }
+            initialsField.setDisable(false);
+        }
+    });
+    
+
+    confirmButton.setOnAction(e -> {
+        String project = projectDropdown.getValue();
+        String initials = initialsField.getText().trim();
+
+        if (project != null && !initials.isEmpty()) {
+            projectManager.addEmployee(new Employee(initials));
+            System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
+            mainContainer.getChildren().clear();
+            Label success = new Label("Medarbejder blev tilføjet!");
+            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+            mainContainer.getChildren().add(success);
+            projectUIVisible = false;
+        }
+    });
+
+    cancelButton.setOnAction(e -> {
+        mainContainer.getChildren().clear();
+        projectUIVisible = false;
+    });
+
+    mainContainer.setSpacing(20);
+    mainContainer.setPadding(new Insets(40, 20, 20, 20));
+    mainContainer.setAlignment(Pos.TOP_LEFT);
+    mainContainer.getChildren().addAll(title, projectDropdown, initialsField, buttonBox);
+}
+
+@FXML
+private void handleAssignEmployee() {
+    if (projectUIVisible || activityUIVisible) return;
+    projectUIVisible = true;
+    mainContainer.getChildren().clear(); 
+
+    Label title = new Label("Tildel medarbejder til aktivitet");
+    title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+    ComboBox<String> projectDropdown = new ComboBox<>();
+    projectDropdown.setPromptText("Vælg projekt");
+    projectDropdown.getItems().addAll(projectManager.getAllProjects());
+    projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     ComboBox<String> activityDropdown = new ComboBox<>();
     activityDropdown.setPromptText("Vælg aktivitet");
     activityDropdown.setDisable(true);
+    activityDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     ComboBox<String> employeeDropdown = new ComboBox<>();
     employeeDropdown.setPromptText("Vælg medarbejder");
+    employeeDropdown.setDisable(true);
+    employeeDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
     projectManager.getAllEmployees().forEach(emp ->
         employeeDropdown.getItems().add(emp.getInitials())
     );
-    employeeDropdown.setDisable(true);
 
     Button confirmButton = new Button("Bekræft");
+    confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
     Button cancelButton = new Button("Annuller");
+    cancelButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
+    HBox buttonBox = new HBox(20, confirmButton, cancelButton);
+    buttonBox.setPadding(new Insets(10));
+    buttonBox.setAlignment(Pos.CENTER);
 
     projectDropdown.setOnAction(e -> {
         String selectedProject = projectDropdown.getValue();
         if (selectedProject != null) {
             if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
-                System.out.println("Kun projektlederen må tildele medarbejdere til dette projekt.");
-                activityDropdown.setDisable(true);
-                employeeDropdown.setDisable(true);
+                showNotProjectLeaderMessage();
                 return;
             }
-
             activityDropdown.getItems().clear();
             projectManager.getActivities(selectedProject).forEach(activity ->
                 activityDropdown.getItems().add(activity.getName())
@@ -224,6 +278,7 @@ private void handleAssignEmployee() {
             employeeDropdown.setDisable(false);
         }
     });
+    
 
     confirmButton.setOnAction(e -> {
         String project = projectDropdown.getValue();
@@ -244,35 +299,38 @@ private void handleAssignEmployee() {
                 }
             }
 
-            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, employeeDropdown, confirmButton, cancelButton);
+            mainContainer.getChildren().clear();
+            Label success = new Label("Medarbejder blev tildelt!");
+            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+            mainContainer.getChildren().add(success);
             projectUIVisible = false;
         }
     });
 
     cancelButton.setOnAction(e -> {
-        mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, employeeDropdown, confirmButton, cancelButton);
+        mainContainer.getChildren().clear();
         projectUIVisible = false;
     });
 
-    int insertIndex = findButtonIndex("Tildel Medarbejder til Aktivitet");
-    if (insertIndex != -1) {
-        mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
-        mainContainer.getChildren().add(insertIndex + 2, activityDropdown);
-        mainContainer.getChildren().add(insertIndex + 3, employeeDropdown);
-        mainContainer.getChildren().add(insertIndex + 4, confirmButton);
-        mainContainer.getChildren().add(insertIndex + 5, cancelButton);
-    }
+    mainContainer.setSpacing(20);
+    mainContainer.setPadding(new Insets(40, 20, 20, 20));
+    mainContainer.setAlignment(Pos.TOP_LEFT);
+    mainContainer.getChildren().addAll(title, projectDropdown, activityDropdown, employeeDropdown, buttonBox);
 }
-
 @FXML
 private void handleLogTime() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
+    mainContainer.getChildren().clear(); // Ryd GUI'en først
+
+    Label title = new Label("Registrer Tid på Aktivitet");
+    title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
     String loggedIn = projectManager.getLoggedInUser();
 
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
+    projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     Set<String> relevantProjects = new HashSet<>();
     for (String project : projectManager.getAllProjects()) {
@@ -289,6 +347,7 @@ private void handleLogTime() {
     ComboBox<String> activityDropdown = new ComboBox<>();
     activityDropdown.setPromptText("Vælg aktivitet");
     activityDropdown.setDisable(true);
+    activityDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     projectDropdown.setOnAction(e -> {
         activityDropdown.getItems().clear();
@@ -306,12 +365,21 @@ private void handleLogTime() {
 
     DatePicker datePicker = new DatePicker();
     datePicker.setPromptText("Vælg dato");
+    datePicker.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     TextField hoursField = new TextField();
     hoursField.setPromptText("Antal timer");
+    hoursField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     Button confirmButton = new Button("Bekræft");
+    confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
     Button cancelButton = new Button("Annuller");
+    cancelButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
+
+    HBox buttonBox = new HBox(20, confirmButton, cancelButton);
+    buttonBox.setPadding(new Insets(10));
+    buttonBox.setAlignment(Pos.CENTER);
 
     confirmButton.setOnAction(e -> {
         String project = projectDropdown.getValue();
@@ -334,68 +402,90 @@ private void handleLogTime() {
                     break;
                 }
             }
-            mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, datePicker, hoursField, confirmButton, cancelButton);
+            mainContainer.getChildren().clear();
+            Label success = new Label("Tid registreret med succes!");
+            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+            mainContainer.getChildren().add(success);
             activityUIVisible = false;
         }
     });
 
     cancelButton.setOnAction(e -> {
-        mainContainer.getChildren().removeAll(projectDropdown, activityDropdown, datePicker, hoursField, confirmButton, cancelButton);
+        mainContainer.getChildren().clear();
         activityUIVisible = false;
     });
 
-    int insertIndex = findButtonIndex("Registrer Tid");
-    if (insertIndex != -1) {
-        mainContainer.getChildren().add(insertIndex + 1, projectDropdown);
-        mainContainer.getChildren().add(insertIndex + 2, activityDropdown);
-        mainContainer.getChildren().add(insertIndex + 3, datePicker);
-        mainContainer.getChildren().add(insertIndex + 4, hoursField);
-        mainContainer.getChildren().add(insertIndex + 5, confirmButton);
-        mainContainer.getChildren().add(insertIndex + 6, cancelButton);
-    }
+    mainContainer.setSpacing(20);
+    mainContainer.setPadding(new Insets(40, 20, 20, 20));
+    mainContainer.setAlignment(Pos.TOP_LEFT);
+    mainContainer.getChildren().addAll(title, projectDropdown, activityDropdown, datePicker, hoursField, buttonBox);
 }
 
 @FXML
 private void handleShowMyActivities() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
+    mainContainer.getChildren().clear(); // Ryd alt
+
+    Label title = new Label("Mine Aktiviteter");
+    title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
     String loggedIn = projectManager.getLoggedInUser();
 
-    VBox activityList = new VBox(10);
-    activityList.setPadding(new Insets(10));
-    activityList.setStyle("-fx-background-color: #e9e9e9; -fx-border-color: #ccc; -fx-border-radius: 5px;");
+    ComboBox<String> projectDropdown = new ComboBox<>();
+    projectDropdown.setPromptText("Vælg projekt");
+    projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    projectDropdown.getItems().addAll(projectManager.getAllProjects());
 
-    for (String project : projectManager.getAllProjects()) {
-        for (Activity activity : projectManager.getActivities(project)) {
-            boolean isAssigned = activity.getAssignedEmployees().stream()
-                .anyMatch(emp -> emp.getInitials().equals(loggedIn));
+    VBox activityList = new VBox(15);
+    activityList.setPadding(new Insets(20));
+    activityList.setStyle("-fx-background-color: #f1f1f1; -fx-border-color: #bbb; -fx-border-radius: 10px;");
+    activityList.setPrefWidth(600);
 
-            if (isAssigned) {
+    projectDropdown.setOnAction(e -> {
+        activityList.getChildren().clear(); // Ryd når man vælger nyt projekt
+
+        String selectedProject = projectDropdown.getValue();
+        if (selectedProject != null) {
+            for (Activity activity : projectManager.getActivities(selectedProject)) {
+                boolean isAssigned = activity.getAssignedEmployees().stream()
+                        .anyMatch(emp -> emp.getInitials().equals(loggedIn));
                 int totalHours = activity.getRegisteredTime(loggedIn);
 
-                Label infoLabel = new Label("Projekt: " + project +
-                        " | Aktivitet: " + activity.getName() +
-                        " | Timer brugt: " + totalHours);
-
-                infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #333;");
-                activityList.getChildren().add(infoLabel);
+                if (isAssigned || totalHours > 0) {
+                    Label infoLabel = new Label(
+                            "Aktivitet: " + activity.getName() + "\n" +
+                            "Timer brugt: " + totalHours
+                    );
+                    infoLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333; -fx-padding: 10; -fx-background-color: white; -fx-border-radius: 5px; -fx-background-radius: 5px;");
+                    activityList.getChildren().add(infoLabel);
+                }
             }
         }
-    }
+    });
 
-    Button closeButton = new Button("Annuller");
+    Button closeButton = new Button("Tilbage");
+    closeButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
     closeButton.setOnAction(e -> {
-        mainContainer.getChildren().removeAll(activityList, closeButton);
+        mainContainer.getChildren().clear();
         activityUIVisible = false;
     });
 
-    int insertIndex = findButtonIndex("Se mine Aktiviteter");
-    if (insertIndex != -1) {
-        mainContainer.getChildren().add(insertIndex + 1, activityList);
-        mainContainer.getChildren().add(insertIndex + 2, closeButton);
-    }
+    VBox contentBox = new VBox(20, title, projectDropdown, activityList, closeButton);
+    contentBox.setPadding(new Insets(40, 20, 20, 20));
+    contentBox.setAlignment(Pos.TOP_LEFT);
+
+    mainContainer.getChildren().add(contentBox);
 }
 
+private void showNotProjectLeaderMessage() {
+    mainContainer.getChildren().clear();
+    Label errorLabel = new Label("❌ Du er ikke projektleder på dette projekt!");
+    errorLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: red; -fx-font-weight: bold;");
+    mainContainer.setAlignment(Pos.CENTER);
+    mainContainer.getChildren().add(errorLabel);
+    projectUIVisible = false;
+    activityUIVisible = false;
+}
 
 }

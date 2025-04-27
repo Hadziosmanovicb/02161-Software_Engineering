@@ -1,48 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.Priority?>
 
-<ScrollPane fx:id="scrollPane"
-            xmlns="http://javafx.com/javafx/8.0.171"
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="dtu.example.ui.SecondaryController"
-            fitToWidth="true"
-            style="-fx-background-color:transparent;">
+            style="-fx-background-color: linear-gradient(to bottom, #fafafa, #eeeeee);">
 
-    <content>
-        <VBox fx:id="mainContainer"
-              alignment="CENTER"
-              spacing="15.0"
-              style="-fx-background-color: #f4f4f4;"
-              VBox.vgrow="ALWAYS">
-
+    <!-- Top bar -->
+    <top>
+        <HBox spacing="20" style="-fx-background-color: #1976D2;" alignment="CENTER_LEFT">
             <padding>
-                <Insets top="40.0" right="30.0" bottom="40.0" left="30.0"/>
+                <Insets top="20" right="20" bottom="20" left="20"/>
             </padding>
-
             <children>
-                <Label text="Vælg en handling"
-                       style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2a2a2a;" />
+                <Label text="Projektstyring" style="-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                <Label fx:id="loggedInLabel" style="-fx-font-size: 16px; -fx-text-fill: white;"/>
+            </children>
+        </HBox>
+    </top>
 
+    <!-- Sidebar (left) -->
+    <left>
+        <VBox spacing="10" style="-fx-background-color: #eeeeee;">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <children>
                 <Button text="Opret Projekt" onAction="#handleCreateProject"
-                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Tilføj Aktivitet" onAction="#handleAddActivity"
-                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Tilføj Medarbejder" onAction="#handleAddEmployee"
-                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-                <Button text="Tildel Medarbejder til Aktivitet" onAction="#handleAssignEmployee"
-                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
+                <Button text="Tildel Medarbejder" onAction="#handleAssignEmployee"
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Registrer Tid" onAction="#handleLogTime"
-                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Se mine Aktiviteter" onAction="#handleShowMyActivities"
-                        style="-fx-font-size: 14px; -fx-pref-width: 250px;" />
-
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Log ud" onAction="#handleLogout"
-                        style="-fx-background-color:rgb(238, 63, 57); -fx-text-fill: white; -fx-font-size: 14px; -fx-pref-width: 250px;" />
+                        style="-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 14px; -fx-pref-width: 180px;"/>
             </children>
         </VBox>
-    </content>
-</ScrollPane>
+    </left>
+
+    <!-- Main content area -->
+    <center>
+        <VBox fx:id="mainContainer" spacing="20" alignment="TOP_LEFT">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+            <children>
+                <Label text="Velkommen! Vælg en handling i menuen." style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+            </children>
+        </VBox>
+    </center>
+
+</BorderPane>
