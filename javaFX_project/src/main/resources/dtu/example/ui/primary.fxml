@@ -10,15 +10,15 @@
 <BorderPane xmlns="http://javafx.com/javafx/8.0.171" 
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="dtu.example.ui.PrimaryController"
-            style="-fx-background-color: linear-gradient(to bottom, #e0f7fa, #ffffff);">
+            style="-fx-background-color: linear-gradient(to bottom right, #d7e1ec, #ffffff);">
 
     <center>
-        <VBox alignment="CENTER" spacing="15.0" maxWidth="300">
-            <Label text="Login" style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
-            <Label text="Indtast dine initialer:" style="-fx-font-size: 14px;"/>
+        <VBox alignment="CENTER" spacing="15.0" maxWidth="320" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+            <Label text="Login" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1976D2;"/>
+            <Label text="Indtast dine initialer:" style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
             <TextField fx:id="initialsField" promptText="fx ABJ" />
             <Button text="Login" onAction="#handleLogin"
-                    style="-fx-background-color: #0288d1; -fx-text-fill: white; -fx-font-size: 14px;"/>
+                    style="-fx-background-color: #1976D2; -fx-text-fill: white; -fx-font-size: 14px;"/>
             <Label fx:id="loginStatus" style="-fx-text-fill: red;"/>
         </VBox>
     </center>
