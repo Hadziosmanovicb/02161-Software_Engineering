@@ -2,6 +2,7 @@ package dtu.example.ui;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import dtu.example.ui.domain.Activity;
@@ -14,12 +15,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class SecondaryController {
-
+    private void showError(String message) {
+        Label errorLabel = new Label("❌ " + message);
+        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+        mainContainer.getChildren().add(errorLabel);
+    }
+    
     @FXML private VBox mainContainer;
 
     private boolean projectUIVisible = false;
@@ -63,16 +70,27 @@ private void handleCreateProject() {
     confirmButton.setOnAction(e -> {
         String name = projectNameField.getText().trim();
         String leader = projectLeaderField.getText().trim();
+    
         if (!name.isEmpty() && !leader.isEmpty()) {
-            projectManager.createProject(name, leader);
-            System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
-            mainContainer.getChildren().clear();
-            Label success = new Label("Projektet blev oprettet!");
-            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
-            mainContainer.getChildren().add(success);
-            projectUIVisible = false;
+            try {
+                Employee leaderEmp = new Employee(leader); 
+                projectManager.addEmployee(leaderEmp);    
+                projectManager.createProject(name, leader);
+                System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
+    
+                mainContainer.getChildren().clear();
+                Label success = new Label("Projektet blev oprettet!");
+                success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+                mainContainer.getChildren().add(success);
+                projectUIVisible = false;
+            } catch (IllegalArgumentException ex) {
+                Label errorLabel = new Label("❌ " + ex.getMessage());
+                errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                mainContainer.getChildren().add(errorLabel);
+            }
         }
     });
+    
 
     cancelButton.setOnAction(e -> {
         mainContainer.getChildren().clear();
@@ -100,14 +118,14 @@ private void handleCreateProject() {
         App.setRoot("primary");
     }
 
-    // Deaktiver alle andre knapper
+    
     private boolean activityUIVisible = false;
     @FXML
     private void handleAddActivity() {
         if (activityUIVisible || projectUIVisible) return;
     
         activityUIVisible = true;
-        mainContainer.getChildren().clear(); // Ryd alt!
+        mainContainer.getChildren().clear(); 
     
         Label title = new Label("Tilføj ny aktivitet");
         title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
@@ -120,6 +138,26 @@ private void handleCreateProject() {
         TextField activityNameField = new TextField();
         activityNameField.setPromptText("Indtast aktivitetsnavn");
         activityNameField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    
+        TextField startWeekField = new TextField();
+        startWeekField.setPromptText("Start uge (fx 12)");
+        startWeekField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    
+        TextField startYearField = new TextField();
+        startYearField.setPromptText("Start år (fx 2025)");
+        startYearField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    
+        TextField endWeekField = new TextField();
+        endWeekField.setPromptText("Slut uge (fx 20)");
+        endWeekField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    
+        TextField endYearField = new TextField();
+        endYearField.setPromptText("Slut år (fx 2025)");
+        endYearField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    
+        TextField budgetHoursField = new TextField();
+        budgetHoursField.setPromptText("Budgetterede timer");
+        budgetHoursField.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
     
         Button confirmButton = new Button("Bekræft");
         confirmButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; -fx-pref-width: 150px;");
@@ -134,18 +172,56 @@ private void handleCreateProject() {
         confirmButton.setOnAction(e -> {
             String selectedProject = projectDropdown.getValue();
             String activityName = activityNameField.getText().trim();
-            if (selectedProject != null && !activityName.isEmpty()) {
-                if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
-                    showNotProjectLeaderMessage();
-                    return;
+    
+            try {
+                int startWeek, startYear, endWeek, endYear, budgetedHours;
+try {
+    startWeek = Integer.parseInt(startWeekField.getText().trim());
+    startYear = Integer.parseInt(startYearField.getText().trim());
+    endWeek = Integer.parseInt(endWeekField.getText().trim());
+    endYear = Integer.parseInt(endYearField.getText().trim());
+    budgetedHours = Integer.parseInt(budgetHoursField.getText().trim());
+} catch (NumberFormatException ex) {
+    showError("Alle felter skal være udfyldt korrekt som tal.");
+    return;
+}
+
+// Valider uger
+if (startWeek < 1 || startWeek > 52 || endWeek < 1 || endWeek > 52) {
+    showError("Uger skal være mellem 1 og 52.");
+    return;
+}
+
+// Valider år
+if (startYear < 2000 || endYear < 2000) {
+    showError("År skal være 2000 eller højere.");
+    return;
+}
+
+
+if (endYear < startYear || (endYear == startYear && endWeek < startWeek)) {
+    showError("Slutdato skal være efter startdato.");
+    return;
+}
+
+    
+                if (selectedProject != null && !activityName.isEmpty()) {
+                    if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
+                        showNotProjectLeaderMessage();
+                        return;
+                    }
+                    projectManager.addActivityToProject(selectedProject, activityName, startWeek, startYear, endWeek, endYear, budgetedHours);
+                    System.out.println("Aktivitet '" + activityName + "' oprettet til projekt: " + selectedProject);
+                    mainContainer.getChildren().clear();
+                    Label success = new Label("Aktivitet blev oprettet!");
+                    success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+                    mainContainer.getChildren().add(success);
+                    activityUIVisible = false;
                 }
-                projectManager.addActivityToProject(selectedProject, activityName);
-                System.out.println("Aktivitet '" + activityName + "' oprettet til projekt: " + selectedProject);
-                mainContainer.getChildren().clear();
-                Label success = new Label("Aktivitet blev oprettet!");
-                success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
-                mainContainer.getChildren().add(success);
-                activityUIVisible = false;
+            } catch (NumberFormatException ex) {
+                Label errorLabel = new Label("❌ Ugyldigt input! Alle felter skal udfyldes korrekt.");
+                errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                mainContainer.getChildren().add(errorLabel);
             }
         });
     
@@ -157,8 +233,13 @@ private void handleCreateProject() {
         mainContainer.setSpacing(20);
         mainContainer.setPadding(new Insets(40, 20, 20, 20));
         mainContainer.setAlignment(Pos.TOP_LEFT);
-        mainContainer.getChildren().addAll(title, projectDropdown, activityNameField, buttonBox);
+        mainContainer.getChildren().addAll(
+            title, projectDropdown, activityNameField,
+            startWeekField, startYearField, endWeekField, endYearField, budgetHoursField,
+            buttonBox
+        );
     }
+    
     @FXML
 private void handleAddEmployee() {
     if (projectUIVisible || activityUIVisible) return;
@@ -203,17 +284,26 @@ private void handleAddEmployee() {
     confirmButton.setOnAction(e -> {
         String project = projectDropdown.getValue();
         String initials = initialsField.getText().trim();
-
+    
         if (project != null && !initials.isEmpty()) {
-            projectManager.addEmployee(new Employee(initials));
-            System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
-            mainContainer.getChildren().clear();
-            Label success = new Label("Medarbejder blev tilføjet!");
-            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
-            mainContainer.getChildren().add(success);
-            projectUIVisible = false;
+            try {
+                Employee newEmp = new Employee(initials); 
+                projectManager.addEmployee(newEmp);
+    
+                System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
+                mainContainer.getChildren().clear();
+                Label success = new Label("Medarbejder blev tilføjet!");
+                success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+                mainContainer.getChildren().add(success);
+                projectUIVisible = false;
+            } catch (IllegalArgumentException ex) {
+                Label errorLabel = new Label("❌ " + ex.getMessage());
+                errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                mainContainer.getChildren().add(errorLabel);
+            }
         }
     });
+    
 
     cancelButton.setOnAction(e -> {
         mainContainer.getChildren().clear();
@@ -321,7 +411,7 @@ private void handleAssignEmployee() {
 private void handleLogTime() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
-    mainContainer.getChildren().clear(); // Ryd GUI'en først
+    mainContainer.getChildren().clear(); 
 
     Label title = new Label("Registrer Tid på Aktivitet");
     title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
@@ -386,17 +476,24 @@ private void handleLogTime() {
         String activityName = activityDropdown.getValue();
         LocalDate date = datePicker.getValue();
         int hours;
-
+    
         try {
             hours = Integer.parseInt(hoursField.getText());
         } catch (NumberFormatException ex) {
             System.out.println("Ugyldigt antal timer");
             return;
         }
-
+    
         if (project != null && activityName != null && hours > 0 && date != null) {
             for (Activity act : projectManager.getActivities(project)) {
                 if (act.getName().equals(activityName)) {
+                    if ("Godkendt".equals(act.getStatus())) {
+                        System.out.println("Kan ikke registrere tid på en godkendt aktivitet!");
+                        Label errorLabel = new Label("❌ Aktiviteten er godkendt. Kan ikke registrere flere timer.");
+                        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                        mainContainer.getChildren().add(errorLabel);
+                        return; // STOP, må ikke registrere tid!
+                    }
                     act.registerTime(new Employee(loggedIn), date, hours);
                     System.out.println("Tid registreret: " + hours + " timer på " + activityName + " (" + date + ")");
                     break;
@@ -409,7 +506,7 @@ private void handleLogTime() {
             activityUIVisible = false;
         }
     });
-
+    
     cancelButton.setOnAction(e -> {
         mainContainer.getChildren().clear();
         activityUIVisible = false;
@@ -425,9 +522,9 @@ private void handleLogTime() {
 private void handleShowMyActivities() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
-    mainContainer.getChildren().clear(); // Ryd alt
+    mainContainer.getChildren().clear();
 
-    Label title = new Label("Mine Aktiviteter");
+    Label title = new Label("Mine Aktiviteter / Projektaktiviteter");
     title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
     String loggedIn = projectManager.getLoggedInUser();
@@ -437,28 +534,128 @@ private void handleShowMyActivities() {
     projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
     projectDropdown.getItems().addAll(projectManager.getAllProjects());
 
+    VBox contentBox = new VBox(20);
+    contentBox.setPadding(new Insets(40, 20, 20, 20));
+    contentBox.setAlignment(Pos.TOP_LEFT);
+
+    VBox projectInfoBox = new VBox(10);
+    projectInfoBox.setPadding(new Insets(10));
+    projectInfoBox.setStyle("-fx-background-color: #e0f7fa; -fx-border-color: #00acc1; -fx-border-radius: 5px;");
+    projectInfoBox.setPrefWidth(600);
+
+    VBox employeeList = new VBox(10);
+    employeeList.setPadding(new Insets(10));
+    employeeList.setStyle("-fx-background-color: #e3f2fd; -fx-border-color: #90caf9; -fx-border-radius: 5px;");
+    employeeList.setPrefWidth(600);
+
     VBox activityList = new VBox(15);
-    activityList.setPadding(new Insets(20));
-    activityList.setStyle("-fx-background-color: #f1f1f1; -fx-border-color: #bbb; -fx-border-radius: 10px;");
+    activityList.setPadding(new Insets(10));
+    activityList.setStyle("-fx-background-color: #f1f1f1; -fx-border-color: #bbb; -fx-border-radius: 5px;");
     activityList.setPrefWidth(600);
 
+    // SCROLL til medarbejder og aktivitet
+    ScrollPane employeeScrollPane = new ScrollPane(employeeList);
+    employeeScrollPane.setFitToWidth(true);
+    employeeScrollPane.setPrefHeight(200);
+
+    ScrollPane activityScrollPane = new ScrollPane(activityList);
+    activityScrollPane.setFitToWidth(true);
+    activityScrollPane.setPrefHeight(400);
+
     projectDropdown.setOnAction(e -> {
-        activityList.getChildren().clear(); // Ryd når man vælger nyt projekt
+        activityList.getChildren().clear();
+        employeeList.getChildren().clear();
+        projectInfoBox.getChildren().clear();
 
         String selectedProject = projectDropdown.getValue();
         if (selectedProject != null) {
-            for (Activity activity : projectManager.getActivities(selectedProject)) {
+            boolean isLeader = projectManager.isLoggedInUserProjectLeader(selectedProject);
+
+            List<Activity> activities = projectManager.getActivities(selectedProject);
+
+            // Projektstatus
+            long totalActivities = activities.size();
+            long completedActivities = activities.stream().filter(Activity::isCompleted).count();
+            int projectProgress = totalActivities == 0 ? 0 : (int) (completedActivities * 100 / totalActivities);
+
+            Label projectStatus = new Label("Projektstatus: " + projectProgress + "% færdig");
+            projectStatus.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+            projectInfoBox.getChildren().add(projectStatus);
+
+            // Medarbejdere
+            Set<String> projectEmployees = new HashSet<>();
+            for (Activity activity : activities) {
+                for (Employee emp : activity.getAssignedEmployees()) {
+                    projectEmployees.add(emp.getInitials());
+                }
+            }
+            Label empTitle = new Label("Medarbejdere i projektet:");
+            empTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+            employeeList.getChildren().add(empTitle);
+
+            if (projectEmployees.isEmpty()) {
+                employeeList.getChildren().add(new Label("- Ingen medarbejdere tildelt endnu"));
+            } else {
+                for (String initials : projectEmployees) {
+                    employeeList.getChildren().add(new Label("- " + initials));
+                }
+            }
+
+            // Aktiviteter
+            for (Activity activity : activities) {
                 boolean isAssigned = activity.getAssignedEmployees().stream()
                         .anyMatch(emp -> emp.getInitials().equals(loggedIn));
-                int totalHours = activity.getRegisteredTime(loggedIn);
+                int personalHours = activity.getRegisteredTime(loggedIn);
 
-                if (isAssigned || totalHours > 0) {
-                    Label infoLabel = new Label(
-                            "Aktivitet: " + activity.getName() + "\n" +
-                            "Timer brugt: " + totalHours
-                    );
-                    infoLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333; -fx-padding: 10; -fx-background-color: white; -fx-border-radius: 5px; -fx-background-radius: 5px;");
-                    activityList.getChildren().add(infoLabel);
+                if (isLeader || isAssigned || personalHours > 0) {
+                    VBox activityBox = new VBox(5);
+                    activityBox.setPadding(new Insets(10));
+                    activityBox.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;");
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("Aktivitet: ").append(activity.getName());
+                    sb.append("\nStatus: ").append(activity.getStatus());
+                    sb.append("\nStart: Uge ").append(activity.getStartWeek()).append(" / ").append(activity.getStartYear());
+                    sb.append("\nSlut: Uge ").append(activity.getEndWeek()).append(" / ").append(activity.getEndYear());
+                    sb.append("\nBudgetterede timer: ").append(activity.getBudgetedHours());
+                    sb.append("\nFærdiggørelse: ").append(activity.getCompletionPercentage()).append("%");
+
+                    Label infoLabel = new Label(sb.toString());
+                    infoLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333;");
+
+                    activityBox.getChildren().add(infoLabel);
+
+                    if (!"Godkendt".equals(activity.getStatus())) {
+                        if (isLeader && "Afventer".equals(activity.getStatus())) {
+                            Button acceptBtn = new Button("Godkend");
+                            Button rejectBtn = new Button("Afvis");
+
+                            acceptBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+                            rejectBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+
+                            acceptBtn.setOnAction(ev -> {
+                                activity.setStatus("Godkendt");
+                                projectDropdown.getOnAction().handle(null);
+                            });
+                            rejectBtn.setOnAction(ev -> {
+                                activity.setStatus("Afvist");
+                                projectDropdown.getOnAction().handle(null);
+                            });
+
+                            HBox buttonBox = new HBox(10, acceptBtn, rejectBtn);
+                            activityBox.getChildren().add(buttonBox);
+                        } else if (isAssigned && ("Ikke klar".equals(activity.getStatus()) || "Afvist".equals(activity.getStatus()))) {
+                            Button doneBtn = new Button("Marker som Færdig");
+                            doneBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+                            doneBtn.setOnAction(ev -> {
+                                activity.setStatus("Afventer");
+                                projectDropdown.getOnAction().handle(null);
+                            });
+                            activityBox.getChildren().add(doneBtn);
+                        }
+                    }
+
+                    activityList.getChildren().add(activityBox);
                 }
             }
         }
@@ -471,10 +668,7 @@ private void handleShowMyActivities() {
         activityUIVisible = false;
     });
 
-    VBox contentBox = new VBox(20, title, projectDropdown, activityList, closeButton);
-    contentBox.setPadding(new Insets(40, 20, 20, 20));
-    contentBox.setAlignment(Pos.TOP_LEFT);
-
+    contentBox.getChildren().addAll(title, projectDropdown, projectInfoBox, employeeScrollPane, activityScrollPane, closeButton);
     mainContainer.getChildren().add(contentBox);
 }
 
