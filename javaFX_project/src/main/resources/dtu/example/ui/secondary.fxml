@@ -20,7 +20,7 @@
                 <Insets top="20" right="20" bottom="20" left="20"/>
             </padding>
             <children>
-                <Label text="Projektstyring" style="-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                <Label text="Softwarehuset A/S" style="-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 <Label fx:id="loggedInLabel" style="-fx-font-size: 16px; -fx-text-fill: white;"/>
             </children>
         </HBox>
