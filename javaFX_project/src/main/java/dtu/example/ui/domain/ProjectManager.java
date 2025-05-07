@@ -5,11 +5,11 @@ import java.util.*;
 public class ProjectManager {
 
     private Map<String, Employee> employees = new HashMap<>();
-    private Map<String, String> projects = new HashMap<>(); // projektNavn → lederInitialer
+    private Map<String, String> projects = new HashMap<>(); 
     private String loggedInUser;
     private Map<String, List<Activity>> activities = new HashMap<>();
 
-    public void addActivityToProject(String projectName, String activityName) {
+    public void addActivityToProject(String projectName, String activityName, int startWeek, int startYear, int endWeek, int endYear, int budgetedHours) {
         if (!projects.containsKey(projectName)) {
             throw new RuntimeException("Projektet findes ikke");
         }
@@ -17,7 +17,7 @@ public class ProjectManager {
             throw new RuntimeException("Kun projektlederen må tilføje aktiviteter");
         }
         activities.computeIfAbsent(projectName, k -> new ArrayList<>())
-                  .add(new Activity(activityName));
+                  .add(new Activity(activityName, startWeek, startYear, endWeek, endYear, budgetedHours));
     }
 
     public List<Activity> getActivities(String projectName) {
@@ -45,7 +45,6 @@ public class ProjectManager {
             throw new RuntimeException("Projekt eksisterer allerede");
         }
         projects.put(name, leaderInitials);
-        // markér projektlederen som leder
         Employee leader = employees.get(leaderInitials);
         if (leader != null) {
             leader.setProjectLeader(true);
