@@ -7,7 +7,7 @@ public class Employee {
     private boolean isProjectLeader = false;
 
     public Employee(String initials) {
-        if (initials == null  initials.length() < 2  initials.length() > 4) {
+        if (initials == null || initials.length() < 2 || initials.length() > 4) {
             throw new IllegalArgumentException("Initialer skal være mellem 2 og 4 bogstaver.");
         }
         this.initials = initials;
