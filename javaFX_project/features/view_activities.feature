@@ -1,3 +1,5 @@
+Feature: Se aktiviteter i projektet
+
   Background:
     Given projektlederen "abc" har oprettet projektet "DTU Portal"
     And en aktivitet "Implementering" er oprettet i projektet "DTU Portal" med start uge 18, år 2025 og slut uge 22, år 2025 og 40 timer

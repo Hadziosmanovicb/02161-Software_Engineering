@@ -1,4 +1,4 @@
-eature: Lighed mellem medarbejdere
+Feature: Lighed mellem medarbejdere
 
   Scenario: To medarbejdere med samme initialer er lig hinanden
     Given en medarbejder med initialerne "eq1" er registreret
