@@ -23,17 +23,20 @@ public class PrimaryController {
             return;
         }
 
-        // Opret medarbejder hvis ny
-        if (!projectManager.employeeExists(initials)) {
-            projectManager.addEmployee(new Employee(initials));
+        try {
+            // Forsøg at oprette ny medarbejder (og valider længden)
+            if (!projectManager.employeeExists(initials)) {
+                projectManager.addEmployee(new Employee(initials));
+            }
+
+            projectManager.setLoggedInUser(initials);
+            App.setRoot("secondary");
+
+        } catch (IllegalArgumentException ex) {
+            loginStatus.setText("❌ " + ex.getMessage());
         }
-
-        // Gem den loggede ind bruger
-        projectManager.setLoggedInUser(initials);
-
-        // Gå videre til secondary view
-        App.setRoot("secondary");
     }
+
 
     public static ProjectManager getProjectManager() {
         return projectManager;
