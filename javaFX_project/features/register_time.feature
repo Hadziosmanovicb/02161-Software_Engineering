@@ -16,5 +16,3 @@ Feature: Registrer tid på en aktivitet
   And aktiviteten "Dokumentation" i projektet "ProjektX" er godkendt
   When medarbejderen "ab" forsøger at registrere 3 timer den 2025-05-02 på "Dokumentation" i "ProjektX"
   Then der er stadig kun 5 timer registreret for "ab" på "Dokumentation"
-
- 

@@ -8,6 +8,7 @@ import java.util.Set;
 import dtu.example.ui.domain.Activity;
 import dtu.example.ui.domain.Employee;
 import dtu.example.ui.domain.ProjectManager;
+import dtu.example.ui.domain.ProjectReportGenerator;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,6 +17,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -25,6 +27,7 @@ public class SecondaryController {
         Label errorLabel = new Label("❌ " + message);
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
         mainContainer.getChildren().add(errorLabel);
+        
     }
     
     @FXML private VBox mainContainer;
@@ -32,6 +35,8 @@ public class SecondaryController {
     private boolean projectUIVisible = false;
 
     private final ProjectManager projectManager = PrimaryController.getProjectManager();
+    private final ProjectReportGenerator reportGenerator = new ProjectReportGenerator(projectManager);
+
     @FXML
     private Label loggedInLabel;
     @FXML
@@ -617,7 +622,7 @@ private void handleShowMyActivities() {
                 }
             }
 
-            // Aktiviteter
+           
             for (Activity activity : activities) {
                 boolean isAssigned = activity.getAssignedEmployees().stream()
                         .anyMatch(emp -> emp.getInitials().equals(loggedIn));
@@ -696,6 +701,54 @@ private void showNotProjectLeaderMessage() {
     mainContainer.getChildren().add(errorLabel);
     projectUIVisible = false;
     activityUIVisible = false;
+}
+@FXML
+private void handleGenerateProjectReport() {
+    if (projectUIVisible || activityUIVisible) return;
+
+    projectUIVisible = true;
+    mainContainer.getChildren().clear();
+
+    Label title = new Label("Generér Rapport for Projekt");
+    title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+    ComboBox<String> projectDropdown = new ComboBox<>();
+    projectDropdown.setPromptText("Vælg projekt");
+    projectDropdown.getItems().addAll(projectManager.getProjectsForLoggedInUser());
+    projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+
+    TextArea reportTextArea = new TextArea();
+    reportTextArea.setEditable(false);
+    reportTextArea.setWrapText(true);
+    reportTextArea.setStyle("-fx-font-size: 14px;");
+    reportTextArea.setPrefSize(600, 400);
+
+    Button generateButton = new Button("Generér Rapport");
+    generateButton.setStyle("-fx-background-color: #1976D2; -fx-text-fill: white; -fx-font-size: 16px;");
+
+    Button backButton = new Button("Tilbage");
+    backButton.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 16px;");
+
+    generateButton.setOnAction(e -> {
+        String selectedProject = projectDropdown.getValue();
+        if (selectedProject == null) {
+            reportTextArea.setText("❌ Vælg et projekt først.");
+        } else {
+            String report = reportGenerator.generateReport(selectedProject);
+            reportTextArea.setText(report);
+        }
+    });
+
+    backButton.setOnAction(e -> {
+        mainContainer.getChildren().clear();
+        projectUIVisible = false;
+    });
+
+    VBox layout = new VBox(20, title, projectDropdown, reportTextArea, new HBox(20, generateButton, backButton));
+    layout.setPadding(new Insets(40, 20, 20, 20));
+    layout.setAlignment(Pos.TOP_LEFT);
+
+    mainContainer.getChildren().add(layout);
 }
 
 }

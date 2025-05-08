@@ -66,4 +66,6 @@ public class Activity {
     public boolean isCompleted() {
         return "Godkendt".equals(status);
     }
+
+    
 }

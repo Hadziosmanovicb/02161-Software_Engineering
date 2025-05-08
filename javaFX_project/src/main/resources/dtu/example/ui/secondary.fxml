@@ -45,6 +45,8 @@
                         style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Se mine Aktiviteter" onAction="#handleShowMyActivities"
                         style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
+               <Button text="Generér Rapport" onAction="#handleGenerateProjectReport"
+                        style="-fx-font-size: 14px; -fx-pref-width: 180px;"/>
                 <Button text="Log ud" onAction="#handleLogout"
                         style="-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-size: 14px; -fx-pref-width: 180px;"/>
             </children>
