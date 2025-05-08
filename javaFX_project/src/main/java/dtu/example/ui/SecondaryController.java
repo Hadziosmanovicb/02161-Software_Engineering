@@ -132,7 +132,7 @@ private void handleCreateProject() {
     
         ComboBox<String> projectDropdown = new ComboBox<>();
         projectDropdown.setPromptText("Vælg projekt");
-        projectDropdown.getItems().addAll(projectManager.getAllProjects());
+        projectDropdown.getItems().addAll(projectManager.getProjectsForLoggedInUser());
         projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
     
         TextField activityNameField = new TextField();
@@ -252,7 +252,7 @@ private void handleAddEmployee() {
 
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
-    projectDropdown.getItems().addAll(projectManager.getAllProjects());
+    projectDropdown.getItems().addAll(projectManager.getProjectsForLoggedInUser());
     projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     TextField initialsField = new TextField();
@@ -289,6 +289,8 @@ private void handleAddEmployee() {
             try {
                 Employee newEmp = new Employee(initials); 
                 projectManager.addEmployee(newEmp);
+              projectManager.addEmployeeToProject(project, initials); 
+
     
                 System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
                 mainContainer.getChildren().clear();
@@ -327,7 +329,7 @@ private void handleAssignEmployee() {
 
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
-    projectDropdown.getItems().addAll(projectManager.getAllProjects());
+    projectDropdown.getItems().addAll(projectManager.getProjectsForLoggedInUser());
     projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
     ComboBox<String> activityDropdown = new ComboBox<>();
@@ -383,8 +385,22 @@ private void handleAssignEmployee() {
 
             for (Activity activity : projectManager.getActivities(project)) {
                 if (activity.getName().equals(activityName)) {
-                    activity.assignEmployee(new Employee(employeeInitials));
-                    System.out.println("Medarbejder " + employeeInitials + " tildelt til aktivitet " + activityName + " i projekt " + project);
+                    Employee emp = projectManager.getEmployeeByInitials(employeeInitials);
+                    if (emp == null) {
+                        System.out.println("Medarbejderen findes ikke.");
+                        return;
+                    }
+                    
+                    if (!projectManager.isEmployeePartOfProject(project, employeeInitials)) {
+                        Label errorLabel = new Label("❌ Medarbejderen er ikke tilknyttet projektet og kan ikke tildeles aktivitet.");
+                        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                        mainContainer.getChildren().add(errorLabel);
+                        return;
+                    }
+                    
+                    
+                    activity.assignEmployee(emp);
+                                        System.out.println("Medarbejder " + employeeInitials + " tildelt til aktivitet " + activityName + " i projekt " + project);
                     break;
                 }
             }
@@ -492,7 +508,7 @@ private void handleLogTime() {
                         Label errorLabel = new Label("❌ Aktiviteten er godkendt. Kan ikke registrere flere timer.");
                         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
                         mainContainer.getChildren().add(errorLabel);
-                        return; // STOP, må ikke registrere tid!
+                        return; 
                     }
                     act.registerTime(new Employee(loggedIn), date, hours);
                     System.out.println("Tid registreret: " + hours + " timer på " + activityName + " (" + date + ")");
@@ -532,7 +548,7 @@ private void handleShowMyActivities() {
     ComboBox<String> projectDropdown = new ComboBox<>();
     projectDropdown.setPromptText("Vælg projekt");
     projectDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
-    projectDropdown.getItems().addAll(projectManager.getAllProjects());
+    projectDropdown.getItems().addAll(projectManager.getProjectsForLoggedInUser());
 
     VBox contentBox = new VBox(20);
     contentBox.setPadding(new Insets(40, 20, 20, 20));
@@ -553,7 +569,7 @@ private void handleShowMyActivities() {
     activityList.setStyle("-fx-background-color: #f1f1f1; -fx-border-color: #bbb; -fx-border-radius: 5px;");
     activityList.setPrefWidth(600);
 
-    // SCROLL til medarbejder og aktivitet
+  
     ScrollPane employeeScrollPane = new ScrollPane(employeeList);
     employeeScrollPane.setFitToWidth(true);
     employeeScrollPane.setPrefHeight(200);

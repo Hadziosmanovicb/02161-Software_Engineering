@@ -422,4 +422,66 @@ public void medarbejderListenIndeholderBegge(String i1, String i2) {
     assertTrue(allEmployees.stream().anyMatch(e -> e.getInitials().equals(i1)));
     assertTrue(allEmployees.stream().anyMatch(e -> e.getInitials().equals(i2)));
 }
+
+@Given("en bruger med initialer {string} er logget ind")
+public void brugerErLoggetInd(String initials) {
+    if (!projectManager.employeeExists(initials)) {
+        projectManager.addEmployee(new Employee(initials));
+    }
+    projectManager.setLoggedInUser(initials);
+}
+
+@When("brugeren opretter projektet {string}")
+public void brugerenOpretterProjektet(String projectName) {
+    String leader = projectManager.getLoggedInUser();
+    projectManager.createProject(projectName, leader);
+}
+
+@Then("er {string} en del af projektet {string}")
+public void erBrugerEnDelAfProjektet(String initials, String projectName) {
+    assertTrue(projectManager.isEmployeePartOfProject(projectName, initials));
+}
+
+@And("brugeren tilføjer medarbejderen {string} globalt, men ikke til projektet")
+public void brugerenTilføjerGlobaltMenIkkeTilProjekt(String initials) {
+    projectManager.addEmployee(new Employee(initials));
+    assertTrue(projectManager.employeeExists(initials));
+  
+}
+
+@And("brugeren opretter aktiviteten {string} i projektet {string}")
+public void brugerenOpretterAktivitet(String activityName, String projectName) {
+    projectManager.addActivityToProject(projectName, activityName, 10, 2025, 12, 2025, 20);
+}
+
+@When("brugeren forsøger at tildele {string} til aktiviteten {string} i {string}")
+public void forsøgerTildelingAfUgyldigMedarbejder(String initials, String activityName, String projectName) {
+    try {
+        Activity activity = projectManager.getActivities(projectName).stream()
+            .filter(a -> a.getName().equals(activityName))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Aktivitet ikke fundet"));
+
+        Employee emp = projectManager.getEmployeeByInitials(initials);
+        if (emp == null) emp = new Employee(initials);
+
+        if (!projectManager.isEmployeePartOfProject(projectName, initials)) {
+            throw new RuntimeException("Medarbejderen er ikke tilknyttet projektet");
+        }
+
+        activity.assignEmployee(emp);
+    } catch (RuntimeException e) {
+        lastErrorMessage = e.getMessage();
+    }
+}
+
+@Then("vises en fejl om at medarbejderen ikke er en del af projektet")
+public void visesFejlOmUgyldigMedarbejder() {
+    assertEquals("Medarbejderen er ikke tilknyttet projektet", lastErrorMessage);
+}
+@Then("medarbejderen {string} er projektleder for {string}")
+public void medarbejderenErProjektlederForProjekt(String initials, String projectName) {
+    assertEquals(initials, projectManager.getProjectLeader(projectName));
+}
+
 }
