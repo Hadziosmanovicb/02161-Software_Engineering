@@ -3,6 +3,7 @@ package dtu.example.ui;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import dtu.example.ui.domain.Activity;
@@ -36,13 +37,32 @@ public class SecondaryController {
 
     private final ProjectManager projectManager = PrimaryController.getProjectManager();
     private final ProjectReportGenerator reportGenerator = new ProjectReportGenerator(projectManager);
-
+private void fireFirstButtonWithText(String buttonText) {
+    mainContainer.getChildren().stream()
+        .flatMap(node -> {
+            if (node instanceof HBox hbox) return hbox.getChildren().stream();
+            else return java.util.stream.Stream.of(node);
+        })
+        .filter(node -> node instanceof Button b && b.getText().equals(buttonText))
+        .findFirst()
+        .ifPresent(node -> ((Button) node).fire());
+}
     @FXML
     private Label loggedInLabel;
-    @FXML
-    private void initialize() {
-        loggedInLabel.setText("Logget ind som: " + projectManager.getLoggedInUser());
-    }
+@FXML
+private void initialize() {
+    loggedInLabel.setText("Logget ind som: " + projectManager.getLoggedInUser());
+
+  
+    mainContainer.setOnKeyPressed(keyEvent -> {
+        if (keyEvent.getCode() == javafx.scene.input.KeyCode.ENTER) {
+            fireFirstButtonWithText("Bekræft");
+        }
+    });
+
+    mainContainer.requestFocus(); 
+}
+
         
   @FXML
 private void handleCreateProject() {
@@ -208,14 +228,25 @@ if (endYear < startYear || (endYear == startYear && endWeek < startWeek)) {
     showError("Slutdato skal være efter startdato.");
     return;
 }
+if (budgetedHours <= 1) {
+    showError("En aktivitet skal være længere end 1 time.");
+    return;
+}
 
     
-                if (selectedProject != null && !activityName.isEmpty()) {
-                    if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
-                        showNotProjectLeaderMessage();
-                        return;
-                    }
-                    projectManager.addActivityToProject(selectedProject, activityName, startWeek, startYear, endWeek, endYear, budgetedHours);
+               if (selectedProject != null && !activityName.isEmpty()) {
+    if (!projectManager.isLoggedInUserProjectLeader(selectedProject)) {
+        showNotProjectLeaderMessage();
+        return;
+    }
+
+    if (projectManager.activityExistsInProject(selectedProject, activityName)) {
+        showError("En aktivitet med dette navn findes allerede i projektet.");
+        return;
+    }
+
+    projectManager.addActivityToProject(selectedProject, activityName, startWeek, startYear, endWeek, endYear, budgetedHours);
+
                     System.out.println("Aktivitet '" + activityName + "' oprettet til projekt: " + selectedProject);
                     mainContainer.getChildren().clear();
                     Label success = new Label("Aktivitet blev oprettet!");
@@ -293,8 +324,15 @@ private void handleAddEmployee() {
         if (project != null && !initials.isEmpty()) {
             try {
                 Employee newEmp = new Employee(initials); 
-                projectManager.addEmployee(newEmp);
-              projectManager.addEmployeeToProject(project, initials); 
+               projectManager.addEmployee(newEmp);
+
+if (projectManager.isEmployeePartOfProject(project, initials)) {
+    showError("Medarbejderen er allerede tildelt projektet.");
+    return;
+}
+
+projectManager.addEmployeeToProject(project, initials);
+
 
     
                 System.out.println("Medarbejder tilføjet: " + initials + " til projekt: " + project);
@@ -396,15 +434,22 @@ private void handleAssignEmployee() {
                         return;
                     }
                     
-                    if (!projectManager.isEmployeePartOfProject(project, employeeInitials)) {
-                        Label errorLabel = new Label("❌ Medarbejderen er ikke tilknyttet projektet og kan ikke tildeles aktivitet.");
-                        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
-                        mainContainer.getChildren().add(errorLabel);
-                        return;
-                    }
-                    
-                    
-                    activity.assignEmployee(emp);
+           if (!projectManager.isEmployeePartOfProject(project, employeeInitials)) {
+    Label errorLabel = new Label("❌ Medarbejderen er ikke tilknyttet projektet og kan ikke tildeles aktivitet.");
+    errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+    mainContainer.getChildren().add(errorLabel);
+    return;
+}
+
+if (activity.getAssignedEmployees().contains(emp)) {
+    Label errorLabel = new Label("❌ Medarbejderen er allerede tildelt denne aktivitet.");
+    errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+    mainContainer.getChildren().add(errorLabel);
+    return;
+}
+
+activity.assignEmployee(emp);
+
                                         System.out.println("Medarbejder " + employeeInitials + " tildelt til aktivitet " + activityName + " i projekt " + project);
                     break;
                 }
@@ -432,7 +477,7 @@ private void handleAssignEmployee() {
 private void handleLogTime() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
-    mainContainer.getChildren().clear(); 
+    mainContainer.getChildren().clear();
 
     Label title = new Label("Registrer Tid på Aktivitet");
     title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #333;");
@@ -447,7 +492,7 @@ private void handleLogTime() {
     for (String project : projectManager.getAllProjects()) {
         for (Activity act : projectManager.getActivities(project)) {
             if (act.getAssignedEmployees().stream()
-                   .anyMatch(emp -> emp.getInitials().equals(loggedIn))) {
+                    .anyMatch(emp -> emp.getInitials().equals(loggedIn))) {
                 relevantProjects.add(project);
                 break;
             }
@@ -460,13 +505,17 @@ private void handleLogTime() {
     activityDropdown.setDisable(true);
     activityDropdown.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
 
+    DatePicker datePicker = new DatePicker();
+    datePicker.setPromptText("Vælg dato");
+    datePicker.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+
     projectDropdown.setOnAction(e -> {
         activityDropdown.getItems().clear();
         String selectedProject = projectDropdown.getValue();
         if (selectedProject != null) {
             for (Activity act : projectManager.getActivities(selectedProject)) {
                 if (act.getAssignedEmployees().stream()
-                       .anyMatch(emp -> emp.getInitials().equals(loggedIn))) {
+                        .anyMatch(emp -> emp.getInitials().equals(loggedIn))) {
                     activityDropdown.getItems().add(act.getName());
                 }
             }
@@ -474,9 +523,26 @@ private void handleLogTime() {
         }
     });
 
-    DatePicker datePicker = new DatePicker();
-    datePicker.setPromptText("Vælg dato");
-    datePicker.setStyle("-fx-font-size: 16px; -fx-pref-width: 300px;");
+    activityDropdown.setOnAction(e -> {
+        String project = projectDropdown.getValue();
+        String activityName = activityDropdown.getValue();
+        if (project != null && activityName != null) {
+            for (Activity act : projectManager.getActivities(project)) {
+                if (act.getName().equals(activityName)) {
+                    LocalDate startDate = LocalDate.of(act.getStartYear(), 1, 1).plusWeeks(act.getStartWeek() - 1);
+                    LocalDate endDate = LocalDate.of(act.getEndYear(), 1, 1).plusWeeks(act.getEndWeek() - 1);
+                    datePicker.setDayCellFactory(picker -> new javafx.scene.control.DateCell() {
+                        @Override
+                        public void updateItem(LocalDate item, boolean empty) {
+                            super.updateItem(item, empty);
+                            setDisable(empty || item.isBefore(startDate) || item.isAfter(endDate));
+                        }
+                    });
+                    break;
+                }
+            }
+        }
+    });
 
     TextField hoursField = new TextField();
     hoursField.setPromptText("Antal timer");
@@ -497,26 +563,26 @@ private void handleLogTime() {
         String activityName = activityDropdown.getValue();
         LocalDate date = datePicker.getValue();
         int hours;
-    
+
         try {
             hours = Integer.parseInt(hoursField.getText());
         } catch (NumberFormatException ex) {
-            System.out.println("Ugyldigt antal timer");
+            Label errorLabel = new Label("❌ Ugyldigt antal timer");
+            errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+            mainContainer.getChildren().add(errorLabel);
             return;
         }
-    
+
         if (project != null && activityName != null && hours > 0 && date != null) {
             for (Activity act : projectManager.getActivities(project)) {
                 if (act.getName().equals(activityName)) {
                     if ("Godkendt".equals(act.getStatus())) {
-                        System.out.println("Kan ikke registrere tid på en godkendt aktivitet!");
                         Label errorLabel = new Label("❌ Aktiviteten er godkendt. Kan ikke registrere flere timer.");
                         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
                         mainContainer.getChildren().add(errorLabel);
-                        return; 
+                        return;
                     }
                     act.registerTime(new Employee(loggedIn), date, hours);
-                    System.out.println("Tid registreret: " + hours + " timer på " + activityName + " (" + date + ")");
                     break;
                 }
             }
@@ -527,7 +593,7 @@ private void handleLogTime() {
             activityUIVisible = false;
         }
     });
-    
+
     cancelButton.setOnAction(e -> {
         mainContainer.getChildren().clear();
         activityUIVisible = false;
@@ -604,23 +670,23 @@ private void handleShowMyActivities() {
             projectInfoBox.getChildren().add(projectStatus);
 
             // Medarbejdere
-            Set<String> projectEmployees = new HashSet<>();
-            for (Activity activity : activities) {
-                for (Employee emp : activity.getAssignedEmployees()) {
-                    projectEmployees.add(emp.getInitials());
-                }
-            }
-            Label empTitle = new Label("Medarbejdere i projektet:");
-            empTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-            employeeList.getChildren().add(empTitle);
+           Label empTitle = new Label("Medarbejdere i projektet:");
+empTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+employeeList.getChildren().add(empTitle);
 
-            if (projectEmployees.isEmpty()) {
-                employeeList.getChildren().add(new Label("- Ingen medarbejdere tildelt endnu"));
-            } else {
-                for (String initials : projectEmployees) {
-                    employeeList.getChildren().add(new Label("- " + initials));
-                }
-            }
+Map<String, List<String>> assignment = projectManager.getEmployeeActivityAssignment(selectedProject);
+
+if (assignment.isEmpty()) {
+    employeeList.getChildren().add(new Label("- Ingen medarbejdere tilføjet"));
+} else {
+    for (Map.Entry<String, List<String>> entry : assignment.entrySet()) {
+        List<String> assignedActivities = entry.getValue();
+        String status = assignedActivities.size() == 1 && assignedActivities.get(0).equals("ledig")
+                        ? "ledig"
+                        : "aktiviteter: " + String.join(", ", assignedActivities);
+        employeeList.getChildren().add(new Label("- " + entry.getKey() + " (" + status + ")"));
+    }
+}
 
            
             for (Activity activity : activities) {
