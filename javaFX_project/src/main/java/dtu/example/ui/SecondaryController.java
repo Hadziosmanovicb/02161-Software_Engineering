@@ -53,14 +53,14 @@ private void fireFirstButtonWithText(String buttonText) {
 private void initialize() {
     loggedInLabel.setText("Logget ind som: " + projectManager.getLoggedInUser());
 
-  
+    // Only trigger "Bekræft" when Enter is pressed
     mainContainer.setOnKeyPressed(keyEvent -> {
         if (keyEvent.getCode() == javafx.scene.input.KeyCode.ENTER) {
             fireFirstButtonWithText("Bekræft");
         }
     });
 
-    mainContainer.requestFocus(); 
+    mainContainer.requestFocus(); // Ensures mainContainer receives key events
 }
 
         

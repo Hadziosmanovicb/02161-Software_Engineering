@@ -130,4 +130,38 @@ public class ProjectManager {
         return result;
     }
     
+    public boolean activityExistsInProject(String projectName, String activityName) {
+    List<Activity> projectActivities = activities.getOrDefault(projectName, Collections.emptyList());
+    return projectActivities.stream()
+            .anyMatch(a -> a.getName().equalsIgnoreCase(activityName));
+}
+
+public Map<String, List<String>> getEmployeeActivityAssignment(String projectName) {
+    Map<String, List<String>> assignment = new HashMap<>();
+
+    Set<String> allEmployees = projectEmployees.getOrDefault(projectName, Set.of());
+    List<Activity> projectActivities = activities.getOrDefault(projectName, List.of());
+
+    for (String initials : allEmployees) {
+        List<String> assignedActivities = new ArrayList<>();
+
+        for (Activity activity : projectActivities) {
+            for (Employee emp : activity.getAssignedEmployees()) {
+                if (emp.getInitials().equals(initials)) {
+                    assignedActivities.add(activity.getName());
+                    break;
+                }
+            }
+        }
+
+        if (assignedActivities.isEmpty()) {
+            assignedActivities.add("ledig");
+        }
+
+        assignment.put(initials, assignedActivities);
+    }
+
+    return assignment;
+}
+
 }
