@@ -1,3 +1,13 @@
+/**
+ * Filnavn: SecondaryController.java
+ * Relaterede filer: ProjectManager.java, Employee.java, Activity.java, ProjectReportGenerator.java, primary.fxml, secondary.fxml
+ *
+ * Formål:
+ * Håndterer den grafiske brugerflade efter login. Giver funktionalitet til oprettelse af projekter
+ * og aktiviteter, tildeling af medarbejdere, tidsregistrering, visning og godkendelse af
+ * aktiviteter samt generering af projektrapporter. Dynamisk GUI-bygning via JavaFX.
+ */
+
 package dtu.example.ui;
 
 import java.time.LocalDate;
@@ -22,7 +32,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
+// Ansvarlig: Benjamin
 public class SecondaryController {
     private void showError(String message) {
         Label errorLabel = new Label("❌ " + message);
@@ -37,7 +47,8 @@ public class SecondaryController {
 
     private final ProjectManager projectManager = PrimaryController.getProjectManager();
     private final ProjectReportGenerator reportGenerator = new ProjectReportGenerator(projectManager);
-private void fireFirstButtonWithText(String buttonText) {
+// Ansvarlig: Ali
+    private void fireFirstButtonWithText(String buttonText) {
     mainContainer.getChildren().stream()
         .flatMap(node -> {
             if (node instanceof HBox hbox) return hbox.getChildren().stream();
@@ -50,6 +61,7 @@ private void fireFirstButtonWithText(String buttonText) {
     @FXML
     private Label loggedInLabel;
 @FXML
+// Ansvarlig: Younes
 private void initialize() {
     loggedInLabel.setText("Logget ind som: " + projectManager.getLoggedInUser());
 
@@ -65,6 +77,7 @@ private void initialize() {
 
         
   @FXML
+  // Ansvarlig: Younes
 private void handleCreateProject() {
     if (projectUIVisible || activityUIVisible) return;
 
@@ -131,7 +144,7 @@ private void handleCreateProject() {
     mainContainer.setAlignment(Pos.TOP_LEFT);
     mainContainer.getChildren().addAll(title, projectNameField, projectLeaderField, buttonBox);
 }
-
+// Ansvarlig: Ali
     private int findButtonIndex(String buttonText) {
         for (int i = 0; i < mainContainer.getChildren().size(); i++) {
             if (mainContainer.getChildren().get(i) instanceof Button btn &&
@@ -141,7 +154,7 @@ private void handleCreateProject() {
         }
         return -1;
     }
-
+// Ansvarlig: Benjamin
     @FXML
     private void handleLogout() throws Exception {
         App.setRoot("primary");
@@ -150,6 +163,7 @@ private void handleCreateProject() {
     
     private boolean activityUIVisible = false;
     @FXML
+    // Ansvarlig: Benjamin
     private void handleAddActivity() {
         if (activityUIVisible || projectUIVisible) return;
     
@@ -281,6 +295,7 @@ if (budgetedHours <= 1) {
     }
     
     @FXML
+    // Ansvarlig: Benjamin
 private void handleAddEmployee() {
     if (projectUIVisible || activityUIVisible) return;
 
@@ -366,6 +381,7 @@ projectManager.addEmployeeToProject(project, initials);
 }
 
 @FXML
+// Ansvarlig: Ali
 private void handleAssignEmployee() {
     if (projectUIVisible || activityUIVisible) return;
     projectUIVisible = true;
@@ -478,6 +494,7 @@ activity.assignEmployee(emp);
     mainContainer.getChildren().addAll(title, projectDropdown, activityDropdown, employeeDropdown, buttonBox);
 }
 @FXML
+// Ansvarlig: Younes
 private void handleLogTime() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
@@ -610,6 +627,7 @@ private void handleLogTime() {
 }
 
 @FXML
+// Ansvarlig: Younes
 private void handleShowMyActivities() {
     if (projectUIVisible || activityUIVisible) return;
     activityUIVisible = true;
@@ -762,7 +780,7 @@ if (assignment.isEmpty()) {
     contentBox.getChildren().addAll(title, projectDropdown, projectInfoBox, employeeScrollPane, activityScrollPane, closeButton);
     mainContainer.getChildren().add(contentBox);
 }
-
+// Ansvarlig: Ali
 private void showNotProjectLeaderMessage() {
     mainContainer.getChildren().clear();
     Label errorLabel = new Label("❌ Du er ikke projektleder på dette projekt!");
@@ -773,6 +791,7 @@ private void showNotProjectLeaderMessage() {
     activityUIVisible = false;
 }
 @FXML
+// Ansvarlig: Benjamin
 private void handleGenerateProjectReport() {
     if (projectUIVisible || activityUIVisible) return;
 

@@ -1,3 +1,13 @@
+/**
+ * Filnavn: PrimaryController.java
+ * Relaterede filer: ProjectManager.java, Employee.java, Activity.java, ProjectReportGenerator.java, primary.fxml, secondary.fxml
+ *
+ * Formål:
+ * Håndterer login-funktionalitet og oprettelse af nye brugere via GUI.
+ * Validerer input, initierer brugerens session i systemet og navigerer videre til
+ * det sekundære interface ved succesfuld login.
+ */
+
 package dtu.example.ui;
 
 import java.io.IOException;
@@ -13,7 +23,7 @@ public class PrimaryController {
     @FXML private Label loginStatus;
 
     private static ProjectManager projectManager = new ProjectManager();
-
+// Ansvarlig: Benjamin
     @FXML
     private void handleLogin() throws IOException {
         String initials = initialsField.getText().trim();
@@ -37,10 +47,11 @@ public class PrimaryController {
         }
     }
     
-
+// Ansvarlig: Younes
     public static ProjectManager getProjectManager() {
         return projectManager;
     }
+    // Ansvarlig: Ali
     @FXML
 private void initialize() {
     initialsField.setOnAction(e -> {

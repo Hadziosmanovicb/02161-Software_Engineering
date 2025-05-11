@@ -14,7 +14,7 @@ JavaFX App*/
 public class App extends Application {
 
     private static Scene scene;
-
+// Ansvarlig: Benjamin
     @Override
 public void start(Stage stage) throws IOException {
     scene = new Scene(loadFXML("primary"), 1280, 800); 

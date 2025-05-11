@@ -1,8 +1,18 @@
 
+/**
+ * Filnavn: ProjectReportGenerator.java
+ * Relaterede filer: ProjectManager.java, Activity.java
+ *
+ * Formål:
+ * Genererer en overskuelig rapport over et projekts aktiviteter,
+ * herunder budgetterede og registrerede timer. Validerer adgangsrettigheder
+ * og håndterer relevante fejltilfælde ved rapportgenerering.
+ */
+
 package dtu.example.ui.domain;
 
 import java.util.List;
-
+// Ansvarlig: benjamin
 public class ProjectReportGenerator {
 
     private ProjectManager projectManager;
@@ -10,7 +20,7 @@ public class ProjectReportGenerator {
     public ProjectReportGenerator(ProjectManager projectManager) {
         this.projectManager = projectManager;
     }
-
+// Ansvarlig: Ali
     public String generateReport(String projectName) {
         if (!projectManager.projectExists(projectName)) {
             return "Projektet findes ikke.";
@@ -36,7 +46,7 @@ public class ProjectReportGenerator {
 
         return report.toString();
     }
-
+// Ansvarlig: Younes
     private int totalLoggedHours(Activity activity) {
         return activity.getCompletionPercentage() * activity.getBudgetedHours() / 100;
     }
