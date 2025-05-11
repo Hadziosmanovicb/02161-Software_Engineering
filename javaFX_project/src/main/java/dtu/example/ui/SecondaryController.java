@@ -222,8 +222,8 @@ if (startWeek < 1 || startWeek > 52 || endWeek < 1 || endWeek > 52) {
 }
 
 // Valider år
-if (startYear < 2000 || endYear < 2000) {
-    showError("År skal være 2000 eller højere.");
+if (startYear < 2025 || endYear < 2025) {
+    showError("År skal være 2025 eller højere.");
     return;
 }
 
