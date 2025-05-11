@@ -92,29 +92,33 @@ private void handleCreateProject() {
     buttonBox.setPadding(new Insets(10));
     buttonBox.setAlignment(Pos.CENTER);
 
-    confirmButton.setOnAction(e -> {
-        String name = projectNameField.getText().trim();
-        String leader = projectLeaderField.getText().trim();
-    
-        if (!name.isEmpty() && !leader.isEmpty()) {
-            try {
-                Employee leaderEmp = new Employee(leader); 
-                projectManager.addEmployee(leaderEmp);    
-                projectManager.createProject(name, leader);
-                System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
-    
-                mainContainer.getChildren().clear();
-                Label success = new Label("Projektet blev oprettet!");
-                success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
-                mainContainer.getChildren().add(success);
-                projectUIVisible = false;
-            } catch (IllegalArgumentException ex) {
-                Label errorLabel = new Label("❌ " + ex.getMessage());
-                errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
-                mainContainer.getChildren().add(errorLabel);
-            }
+   confirmButton.setOnAction(e -> {
+    String name = projectNameField.getText().trim();
+    String leader = projectLeaderField.getText().trim();
+
+    if (!name.isEmpty() && !leader.isEmpty()) {
+        if (projectManager.projectExists(name)) {
+            showError("Et projekt med dette navn findes allerede.");
+            return;
         }
-    });
+
+        try {
+            Employee leaderEmp = new Employee(leader); 
+            projectManager.addEmployee(leaderEmp);    
+            projectManager.createProject(name, leader);
+            System.out.println("Projekt oprettet: " + name + " — Leder: " + leader);
+
+            mainContainer.getChildren().clear();
+            Label success = new Label("Projektet blev oprettet!");
+            success.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+            mainContainer.getChildren().add(success);
+            projectUIVisible = false;
+        } catch (IllegalArgumentException ex) {
+            showError(ex.getMessage());
+        }
+    }
+});
+
     
 
     cancelButton.setOnAction(e -> {
