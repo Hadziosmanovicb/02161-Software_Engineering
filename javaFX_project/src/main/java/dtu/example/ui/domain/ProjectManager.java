@@ -20,7 +20,7 @@ public class ProjectManager {
     private Map<String, List<Activity>> activities = new HashMap<>();
     private Map<String, Set<String>> projectEmployees = new HashMap<>();
 
-   // Ansvarlig: Benjamin
+   // Ansvarlig: Younes
     public void addActivityToProject(String projectName, String activityName, int startWeek, int startYear, int endWeek, int endYear, int budgetedHours) {
         if (!projects.containsKey(projectName)) {
             throw new RuntimeException("Projektet findes ikke");
@@ -145,7 +145,7 @@ public class ProjectManager {
     return projectActivities.stream()
             .anyMatch(a -> a.getName().equalsIgnoreCase(activityName));
 }
-// Ansvarlig: Younes
+// Ansvarlig: Benjamin
 public Map<String, List<String>> getEmployeeActivityAssignment(String projectName) {
     Map<String, List<String>> assignment = new HashMap<>();
 
